@@ -139,7 +139,7 @@ onprem1_gw_private_ip=$(az network nic show -g $rg -n $onprem1_vnet_name-gw --qu
 onprem1_gw_nic_default_gw=$(first_ip $onprem1_gw_subnet_address)
 
 # onprem1 local network gateway
-echo -e "\e[1;36mDeploying $onprem1_vnet_name-gw local gateway resource...\e[0m"
+echo -e "\e[1;36mDeploying $onprem1_vnet_name-gw local network gateway resource...\e[0m"
 az network local-gateway create -g $rg -n $onprem1_vnet_name-gw -l $location1 --gateway-ip-address $onprem1_gw_pubip --asn $onprem1_gw_asn --bgp-peering-address $onprem1_gw_private_ip --local-address-prefixes $onprem1_gw_private_ip/32 -o none
 
 # onprem2 gw vm
@@ -153,7 +153,7 @@ onprem2_gw_private_ip=$(az network nic show -g $rg -n $onprem2_vnet_name-gw --qu
 onprem2_gw_nic_default_gw=$(first_ip $onprem2_gw_subnet_address)
 
 # onprem2 local network gateway
-echo -e "\e[1;36mDeploying $onprem2_vnet_name-gw local gateway resource...\e[0m"
+echo -e "\e[1;36mDeploying $onprem2_vnet_name-gw local network gateway resource...\e[0m"
 az network local-gateway create -g $rg -n $onprem2_vnet_name-gw -l $location1 --gateway-ip-address $onprem2_gw_pubip --asn $onprem2_gw_asn --bgp-peering-address $onprem2_gw_private_ip --local-address-prefixes $onprem2_gw_private_ip/32 -o none
 
 # onprem1 vm
