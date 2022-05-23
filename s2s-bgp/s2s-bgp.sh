@@ -172,7 +172,7 @@ onprem2_vm_ip=$(az network nic show -g $rg -n $onprem2_vnet_name --query ipConfi
 echo -e "\e[1;36mDeploying $hub1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $hub1_vnet_name -l $location1 --vnet-name $hub1_vnet_name --subnet $hub1_vm_subnet_name -o none
 az vm create -g $rg -n $hub1_vnet_name -l $location1 --image $vm_image --nics $hub1_vnet_name --os-disk-name $hub1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-hub1_vm_ip=$(az network nic show -g $rg -n $hub1_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $hub1_vm_ip
+hub1_vm_ip=$(az network nic show -g $rg -n $hub1_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv)  && echo $hub1_vnet_name vm private ip: $hub1_vm_ip
 
 # spoke1 vm
 echo -e "\e[1;36mDeploying $spoke1_vnet_name VM...\e[0m"
