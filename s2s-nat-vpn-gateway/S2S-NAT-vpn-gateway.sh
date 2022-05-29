@@ -77,6 +77,15 @@ function wait_until_finished {
      fi
 }
 
+function replace_1st_2octets(){
+    ip=$1
+    subnet=$2
+    modsub=$(echo $subnet | cut -d"/" -f 1)
+    presub=$(echo $modsub | cut -d"." -f1-2)
+    tailip=$(echo $ip | cut -d"." -f3-4)
+    echo $presub.$tailip
+
+}
 
 # Resource Groups
 echo -e "\e[1;36mCreating $rg Resource Group...\e[0m"
@@ -139,32 +148,35 @@ echo -e "\e[1;36mDeploying $onprem1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $onprem1_vnet_name -l $location1 --vnet-name $onprem1_vnet_name --subnet $onprem1_vm_subnet_name -o none
 az vm create -g $rg -n $onprem1_vnet_name -l $location1 --image $vm_image --nics $onprem1_vnet_name --os-disk-name $onprem1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 onprem1_vm_ip=$(az network nic show -g $rg -n $onprem1_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $onprem1_vnet_name private ip: $onprem1_vm_ip
+onprem1_vm_nat_ip=$(replace_1st_2octets $onprem1_vm_ip $onprem1_nat_address) && echo $onprem2_vnet_name vm nat ip: $onprem1_vm_nat_ip
 
 # onprem2 vm
 echo -e "\e[1;36mDeploying $onprem2_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $onprem2_vnet_name -l $location2 --vnet-name $onprem2_vnet_name --subnet $onprem2_vm_subnet_name -o none
 az vm create -g $rg -n $onprem2_vnet_name -l $location2 --image $vm_image --nics $onprem2_vnet_name --os-disk-name $onprem2_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 onprem2_vm_ip=$(az network nic show -g $rg -n $onprem2_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $onprem2_vnet_name private ip: $onprem2_vm_ip
+onprem2_vm_nat_ip=$(replace_1st_2octets $onprem2_vm_ip $onprem2_nat_address) && echo $onprem2_vnet_name vm nat ip: $onprem2_vm_nat_ip
 
 # hub1 vm
 echo -e "\e[1;36mDeploying $hub1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $hub1_vnet_name -l $location1 --vnet-name $hub1_vnet_name --subnet $hub1_vm_subnet_name -o none
 az vm create -g $rg -n $hub1_vnet_name -l $location1 --image $vm_image --nics $hub1_vnet_name --os-disk-name $hub1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 hub1_vm_ip=$(az network nic show -g $rg -n $hub1_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $hub1_vnet_name private ip: $hub1_vm_ip
+hub1_vm_nat_ip=$(replace_1st_2octets $hub1_vm_ip $hub1_nat_address) && echo $hub1_vnet_name vm nat ip: $hub1_vm_nat_ip
 
 # onprem1 route table
 echo -e "\e[1;36mDeploying $onprem1_vnet_name route table and attaching it to $onprem1_vm_subnet_name subnet...\e[0m"
-az network route-table create -n $onprem1_vnet_name -g $rg -l $location1 -o none
-az network route-table route create --address-prefix $hub1_nat_address -n to-$hub1_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
-az network route-table route create --address-prefix $onprem2_nat_address -n to-$onprem2_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
-az network vnet subnet update --vnet-name $onprem1_vnet_name -n $onprem1_vm_subnet_name --route-table $onprem1_vnet_name -g $rg -o none
+az network route-table create -g $rg -n $onprem1_vnet_name -l $location1 -o none
+az network route-table route create -g $rg -n to-$hub1_vnet_name-nat --address-prefix $hub1_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$onprem2_vnet_name-nat --address-prefix $onprem2_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
+az network vnet subnet update -g $rg -n $onprem1_vm_subnet_name --vnet-name $onprem1_vnet_name --route-table $onprem1_vnet_name -o none
 
 # onprem2 route table
 echo -e "\e[1;36mDeploying $onprem2_vnet_name route table and attaching it to $onprem2_vm_subnet_name subnet...\e[0m"
-az network route-table create -n $onprem2_vnet_name -g $rg -l $location2 -o none
-az network route-table route create --address-prefix $hub1_nat_address -n to-$hub1_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
-az network route-table route create --address-prefix $onprem1_nat_address -n to-$onprem1_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
-az network vnet subnet update --vnet-name $onprem2_vnet_name -n $onprem2_vm_subnet_name --route-table $onprem2_vnet_name -g $rg -o none
+az network route-table create -g $rg -n $onprem2_vnet_name -l $location2 -o none
+az network route-table route create -g $rg -n to-$hub1_vnet_name-nat --address-prefix $hub1_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$onprem1_vnet_name-nat --address-prefix $onprem1_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
+az network vnet subnet update -g $rg -n $onprem2_vm_subnet_name --vnet-name $onprem2_vnet_name --route-table $onprem2_vnet_name -o none
 
 # onprem1 vm nsg
 echo -e "\e[1;36mCreating $onprem1_vnet_name-vm-nsg NSG...\e[0m"
@@ -413,3 +425,16 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipse
 
 # clean up config files
 rm $psk_file $ipsec_file $ipsec_vti_file
+
+
+#############
+# Diagnosis #
+#############
+echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw gateway vm to the rest of network topology...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $hub1_vm_nat_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $onprem2_vm_nat_ip -c 3"
+
+echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw gateway vm to the rest of network topology...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $hub1_vm_nat_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $onprem1_vm_nat_ip -c 3"
+
