@@ -223,17 +223,21 @@ hub1_vm_nat_ip=$(replace_1st_2octets $hub1_vm_ip $hub1_nat_address) && echo $hub
 
 # onprem1 route table
 echo -e "\e[1;36mDeploying $onprem1_vnet_name route table and attaching it to $onprem1_vm_subnet_name subnet...\e[0m"
-az network route-table create -n $onprem1_vnet_name -g $rg -l $location1 -o none
-az network route-table route create --address-prefix $hub1_nat_address -n to-$hub1_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
-az network route-table route create --address-prefix $onprem2_nat_address -n to-$onprem2_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
-az network vnet subnet update --vnet-name $onprem1_vnet_name -n $onprem1_vm_subnet_name --route-table $onprem1_vnet_name -g $rg -o none
+az network route-table create -g $rg -n $onprem1_vnet_name -l $location1 -o none
+az network route-table route create -g $rg -n to-$hub1_vnet_name-nat --address-prefix $hub1_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$onprem2_vnet_name-nat --address-prefix $onprem2_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type VirtualAppliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
+az network vnet subnet update -g $rg -n $onprem1_vm_subnet_name --vnet-name $onprem1_vnet_name --route-table $onprem1_vnet_name -o none
 
 # onprem2 route table
 echo -e "\e[1;36mDeploying $onprem2_vnet_name route table and attaching it to $onprem2_vm_subnet_name subnet...\e[0m"
-az network route-table create -n $onprem2_vnet_name -g $rg -l $location2 -o none
-az network route-table route create --address-prefix $hub1_nat_address -n to-$hub1_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
-az network route-table route create --address-prefix $onprem1_nat_address -n to-$onprem1_vnet_name-nat -g $rg --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
-az network vnet subnet update --vnet-name $onprem2_vnet_name -n $onprem2_vm_subnet_name --route-table $onprem2_vnet_name -g $rg -o none
+az network route-table create -g $rg -n $onprem2_vnet_name -l $location2 -o none
+az network route-table route create -g $rg -n to-$hub1_vnet_name-nat --address-prefix $hub1_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$onprem1_vnet_name-nat --address-prefix $onprem1_nat_address --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
+az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type VirtualAppliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
+az network vnet subnet update -g $rg -n $onprem2_vm_subnet_name --vnet-name $onprem2_vnet_name --route-table $onprem2_vnet_name -o none
 
 # spoke1 vm nsg
 echo -e "\e[1;36mCreating $spoke1_vnet_name-vm-nsg NSG...\e[0m"
