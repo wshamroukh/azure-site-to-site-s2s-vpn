@@ -282,7 +282,7 @@ conn %default
          leftupdown=/etc/strongswan.d/ipsec-vti.sh
          compress=no
          mobike=no
-conn $hub_vnet_name-gw
+conn $hub1_vnet_name-gw
          # OnPrem Gateway Private IP Address :
          left=$onprem1_gw_private_ip
          # OnPrem Gateway Public IP Address :
