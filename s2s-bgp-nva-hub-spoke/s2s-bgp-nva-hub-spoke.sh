@@ -56,7 +56,7 @@ vm_image=$(az vm image list -l $location1 -p Canonical -s 20_04-lts --all --quer
 vm_size=Standard_B1s
 
 opnsense_init_file=~/opnsense_init.sh
-tee -a $opnsense_init_file > /dev/null <<'EOF'
+cat <<EOF > $opnsense_init_file
 #!/usr/local/bin/bash
 echo $admin_password | sudo -S pkg update
 sudo pkg upgrade -y
@@ -75,9 +75,6 @@ sudo sh ~/opnsense-bootstrap.sh.in -y -r 22.1
 sudo cp ~/config.xml /usr/local/etc/config.xml
 sudo reboot
 EOF
-
-sed -i "/\$admin_password/ s//$admin_password/" $opnsense_init_file
-sed -i "/\\\n\$admin_password/ s//\\\n$admin_password/" $opnsense_init_file
 
 onprem_gw_cloudinit_file=~/onprem_gw_cloudinit.txt
 cat <<EOF > $onprem_gw_cloudinit_file
