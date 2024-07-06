@@ -80,9 +80,10 @@ onprem_gw_cloudinit_file=~/onprem_gw_cloudinit.txt
 cat <<EOF > $onprem_gw_cloudinit_file
 #cloud-config
 runcmd:
-  - curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
-  - echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) frr-stable | sudo tee -a /etc/apt/sources.list.d/frr.list
-  - sudo apt update && sudo apt install -y frr frr-pythontools strongswan tcptraceroute
+  - curl -s https://deb.frrouting.org/frr/keys.gpg | sudo tee /usr/share/keyrings/frrouting.gpg > /dev/null
+  - echo deb [signed-by=/usr/share/keyrings/frrouting.gpg] https://deb.frrouting.org/frr \$(lsb_release -s -c) frr-stable | sudo tee -a /etc/apt/sources.list.d/frr.list
+  - sudo apt update && sudo apt install -y frr frr-pythontools
+  - sudo apt install -y strongswan tcptraceroute
   - sudo sed -i "/bgpd=no/ s//bgpd=yes/" /etc/frr/daemons
   - sudo cat /etc/frr/daemons
   - sudo service frr restart
