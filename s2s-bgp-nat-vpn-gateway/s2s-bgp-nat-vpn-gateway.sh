@@ -165,7 +165,7 @@ az network nic create -g $rg  -n $onprem1_vnet_name-gw -l $location1 --vnet-name
 az vm create -g $rg -n $onprem1_vnet_name-gw -l $location1 --image $vm_image --nics $onprem1_vnet_name-gw --os-disk-name $onprem1_vnet_name-gw --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file --no-wait
 # onprem1 gw details
 onprem1_gw_pubip=$(az network public-ip show -g $rg -n $onprem1_vnet_name-gw --query ipAddress -o tsv) && echo $onprem1_vnet_name-gw public ip: $onprem1_gw_pubip
-onprem1_gw_private_ip=$(az network nic show -g $rg -n $onprem1_vnet_name-gw --query ipConfigurations[].privateIpAddress -o tsv)  && echo $onprem1_vnet_name-gw private ip: $onprem1_gw_private_ip
+onprem1_gw_private_ip=$(az network nic show -g $rg -n $onprem1_vnet_name-gw --query ipConfigurations[].privateIPAddress -o tsv)  && echo $onprem1_vnet_name-gw private ip: $onprem1_gw_private_ip
 onprem1_gw_nic_default_gw=$(first_ip $onprem1_gw_subnet_address) && echo $onprem1_gw_nic_default_gw
 onprem1_gw_nat_private_ip=$(replace_1st_2octets $onprem1_gw_private_ip $onprem1_nat_address) && echo $onprem1_vnet_name-gw NAT private ip: $onprem1_gw_nat_private_ip
 
@@ -180,7 +180,7 @@ az network nic create -g $rg  -n $onprem2_vnet_name-gw -l $location2 --vnet-name
 az vm create -g $rg -n $onprem2_vnet_name-gw -l $location2 --image $vm_image --nics $onprem2_vnet_name-gw --os-disk-name $onprem2_vnet_name-gw --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file --no-wait
 # onprem2 gw details
 onprem2_gw_pubip=$(az network public-ip show -g $rg -n $onprem2_vnet_name-gw --query ipAddress -o tsv) && echo $onprem2_vnet_name-gw public ip: $onprem2_gw_pubip
-onprem2_gw_private_ip=$(az network nic show -g $rg -n $onprem2_vnet_name-gw --query ipConfigurations[].privateIpAddress -o tsv)  && echo $onprem2_vnet_name-gw private ip: $onprem2_gw_private_ip
+onprem2_gw_private_ip=$(az network nic show -g $rg -n $onprem2_vnet_name-gw --query ipConfigurations[].privateIPAddress -o tsv)  && echo $onprem2_vnet_name-gw private ip: $onprem2_gw_private_ip
 onprem2_gw_nic_default_gw=$(first_ip $onprem2_gw_subnet_address) && echo $onprem2_gw_nic_default_gw
 onprem2_gw_nat_private_ip=$(replace_1st_2octets $onprem2_gw_private_ip $onprem2_nat_address) && echo $onprem2_vnet_name-gw NAT private ip: $onprem2_gw_nat_private_ip
 
@@ -192,33 +192,33 @@ az network local-gateway create -g $rg -n $onprem2_vnet_name-gw -l $location1 --
 echo -e "\e[1;36mDeploying $spoke1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $spoke1_vnet_name -l $location1 --vnet-name $spoke1_vnet_name --subnet $spoke1_vm_subnet_name -o none
 az vm create -g $rg -n $spoke1_vnet_name -l $location1 --image $vm_image --nics $spoke1_vnet_name --os-disk-name $spoke1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-spoke1_vm_ip=$(az network nic show -g $rg -n $spoke1_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $spoke1_vnet_name vm private ip: $spoke1_vm_ip
+spoke1_vm_ip=$(az network nic show -g $rg -n $spoke1_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv) && echo $spoke1_vnet_name vm private ip: $spoke1_vm_ip
 
 # spoke2 vm
 echo -e "\e[1;36mDeploying $spoke2_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $spoke2_vnet_name -l $location2 --vnet-name $spoke2_vnet_name --subnet $spoke2_vm_subnet_name -o none
 az vm create -g $rg -n $spoke2_vnet_name -l $location2 --image $vm_image --nics $spoke2_vnet_name --os-disk-name $spoke2_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-spoke2_vm_ip=$(az network nic show -g $rg -n $spoke2_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $spoke2_vnet_name vm private ip: $spoke2_vm_ip
+spoke2_vm_ip=$(az network nic show -g $rg -n $spoke2_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv) && echo $spoke2_vnet_name vm private ip: $spoke2_vm_ip
 
 # onprem1 vm
 echo -e "\e[1;36mDeploying $onprem1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $onprem1_vnet_name -l $location1 --vnet-name $onprem1_vnet_name --subnet $onprem1_vm_subnet_name -o none
 az vm create -g $rg -n $onprem1_vnet_name -l $location1 --image $vm_image --nics $onprem1_vnet_name --os-disk-name $onprem1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-onprem1_vm_ip=$(az network nic show -g $rg -n $onprem1_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $onprem1_vnet_name private ip: $onprem1_vm_ip
+onprem1_vm_ip=$(az network nic show -g $rg -n $onprem1_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv) && echo $onprem1_vnet_name private ip: $onprem1_vm_ip
 onprem1_vm_nat_ip=$(replace_1st_2octets $onprem1_vm_ip $onprem1_nat_address) && echo $onprem2_vnet_name vm nat ip: $onprem1_vm_nat_ip
 
 # onprem2 vm
 echo -e "\e[1;36mDeploying $onprem2_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $onprem2_vnet_name -l $location2 --vnet-name $onprem2_vnet_name --subnet $onprem2_vm_subnet_name -o none
 az vm create -g $rg -n $onprem2_vnet_name -l $location2 --image $vm_image --nics $onprem2_vnet_name --os-disk-name $onprem2_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-onprem2_vm_ip=$(az network nic show -g $rg -n $onprem2_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $onprem2_vnet_name private ip: $onprem2_vm_ip
+onprem2_vm_ip=$(az network nic show -g $rg -n $onprem2_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv) && echo $onprem2_vnet_name private ip: $onprem2_vm_ip
 onprem2_vm_nat_ip=$(replace_1st_2octets $onprem2_vm_ip $onprem2_nat_address) && echo $onprem2_vnet_name vm nat ip: $onprem2_vm_nat_ip
 
 # hub1 vm
 echo -e "\e[1;36mDeploying $hub1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $hub1_vnet_name -l $location1 --vnet-name $hub1_vnet_name --subnet $hub1_vm_subnet_name -o none
 az vm create -g $rg -n $hub1_vnet_name -l $location1 --image $vm_image --nics $hub1_vnet_name --os-disk-name $hub1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-hub1_vm_ip=$(az network nic show -g $rg -n $hub1_vnet_name --query ipConfigurations[0].privateIpAddress -o tsv) && echo $hub1_vnet_name private ip: $hub1_vm_ip
+hub1_vm_ip=$(az network nic show -g $rg -n $hub1_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv) && echo $hub1_vnet_name private ip: $hub1_vm_ip
 hub1_vm_nat_ip=$(replace_1st_2octets $hub1_vm_ip $hub1_nat_address) && echo $hub1_vnet_name vm nat ip: $hub1_vm_nat_ip
 
 # onprem1 route table
