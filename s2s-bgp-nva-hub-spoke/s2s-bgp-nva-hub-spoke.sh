@@ -52,7 +52,7 @@ tag='scenario=s2s-nva-hub-spoke'
 admin_username=$(whoami)
 admin_password='Test#123#123'
 myip=$(curl -s4 https://ifconfig.co/)
-vm_image=$(az vm image list -l $location1 -p Canonical -s 20_04-lts --all --query "[?offer=='0001-com-ubuntu-server-focal'].urn" -o tsv | sort -u | tail -n 1)
+vm_image=$(az vm image list -l $location1 -p Canonical -s 22_04-lts --all --query "[?offer=='0001-com-ubuntu-server-jammy'].urn" -o tsv | sort -u | tail -n 1) && echo $vm_image
 vm_size=Standard_B1s
 
 opnsense_init_file=~/opnsense_init.sh
