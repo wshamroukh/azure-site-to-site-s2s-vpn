@@ -329,7 +329,7 @@ sed -i "s,\\\$onprem2_nat_address,${onprem2_nat_address}," $ipsec_vti_file
 ##### copy files to onprem gw
 echo -e "\e[1;36mCopying and applying S2S VPN Config files to $onprem1_vnet_name-gw Gateway VM...\e[0m"
 scp -o StrictHostKeyChecking=no $psk_file $ipsec_file $ipsec_vti_file $onprem1_gw_pubip:/home/$admin_username
-scp -o StrictHostKeyChecking=no .ssh/* $onprem1_gw_pubip:/home/$admin_username/.ssh/
+scp -o StrictHostKeyChecking=no ~/.ssh/* $onprem1_gw_pubip:/home/$admin_username/.ssh/
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo mv /home/$admin_username/ipsec.* /etc/ && sudo mv /home/$admin_username/ipsec-vti.sh /etc/strongswan.d/ && chmod +x /etc/strongswan.d/ipsec-vti.sh && sudo ipsec restart"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
 
@@ -419,7 +419,7 @@ sed -i "s,\\\$onprem1_nat_address,${onprem1_nat_address}," $ipsec_vti_file
 ##### copy files to onprem gw
 echo -e "\e[1;36mCopying and applying S2S VPN Config files to $onprem2_vnet_name-gw Gateway VM...\e[0m"
 scp -o StrictHostKeyChecking=no $psk_file $ipsec_file $ipsec_vti_file $onprem2_gw_pubip:/home/$admin_username
-scp -o StrictHostKeyChecking=no .ssh/* $onprem2_gw_pubip:/home/$admin_username/.ssh/
+scp -o StrictHostKeyChecking=no ~/.ssh/* $onprem2_gw_pubip:/home/$admin_username/.ssh/
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /home/$admin_username/ipsec.* /etc/ && sudo mv /home/$admin_username/ipsec-vti.sh /etc/strongswan.d/ && chmod +x /etc/strongswan.d/ipsec-vti.sh && sudo ipsec restart"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
 
