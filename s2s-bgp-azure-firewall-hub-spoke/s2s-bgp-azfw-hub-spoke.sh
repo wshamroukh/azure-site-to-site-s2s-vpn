@@ -653,8 +653,9 @@ rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
 #############################################################
 # Diagnosis before directing all the traffic to AZ Firewall #
 #############################################################
+echo -e "\e[1;36mRestarting IPSEC on $onprem1_vnet_name-gw gateway vm...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec stop && sudo ipsec start && sudo ipsec status && ip a"
 echo -e "\e[1;36mChecking BGP routing on $onprem1_vnet_name-gw gateway vm...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show bgp summary'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip route'"
@@ -665,8 +666,10 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $spo
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $spoke2_vm_ip -c 3"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $onprem2_vm_ip -c 3"
 
+echo -e "\e[1;36mRestarting IPSEC on $onprem2_vnet_name-gw gateway vm...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vnet_name "sudo ipsec stop && sudo ipsec start && sudo ipsec status && ip a"
+
 echo -e "\e[1;36mChecking BGP routing on $onprem2_vnet_name-gw gateway vm...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show bgp summary'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip route'"
