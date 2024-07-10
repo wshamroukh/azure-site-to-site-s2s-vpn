@@ -146,8 +146,8 @@ az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_v
 
 # vpn gateway
 echo -e "\e[1;36mCreating $hub1_vnet_name-gw VNet...\e[0m"
-az network public-ip create -g $rg -n "$hub1_vnet_name-gw-pubip0" -l $location1 --allocation-method dynamic --sku basic --tags $tag -o none
-az network public-ip create -g $rg -n "$hub1_vnet_name-gw-pubip1" -l $location1 --allocation-method dynamic --sku basic --tags $tag -o none
+az network public-ip create -g $rg -n "$hub1_vnet_name-gw-pubip0" -l $location1 --allocation-method Static --tags $tag -o none
+az network public-ip create -g $rg -n "$hub1_vnet_name-gw-pubip1" -l $location1 --allocation-method Static --tags $tag -o none
 az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --public-ip-addresses "$hub1_vnet_name-gw-pubip0" "$hub1_vnet_name-gw-pubip1" --vnet $hub1_vnet_name --gateway-type vpn --sku vpngw1 --vpn-type routebased --asn $hub1_gw_asn --tags $tag --no-wait 
 
 # hub1 fw opnsense vm
