@@ -12,7 +12,7 @@ hub1_vm_subnet_address='10.1.1.0/24'
 
 hub1_fw_subnet_name='fw'
 hub1_fw_subnet_address='10.1.2.0/24'
-hub1_fw_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --all --query "[?offer=='freebsd-13_1'].urn" -o tsv | sort -u | tail -n 1)
+hub1_fw_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --all --query "[?offer=='freebsd-13_2'].urn" -o tsv | sort -u | tail -n 1) && echo $hub1_fw_vm_image
 az vm image terms accept --urn $hub1_fw_vm_image -o none
 
 spoke1_vnet_name='spoke1'
