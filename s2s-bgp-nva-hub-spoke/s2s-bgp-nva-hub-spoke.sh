@@ -144,6 +144,15 @@ az network nsg create -g $rg -n $hub1_vnet_name-vm-nsg -l $location1 -o none
 az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-vm-nsg --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes $myip --source-port-ranges '*' -o none
 az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --nsg $hub1_vnet_name-vm-nsg -o none
 
+# hub1 fw nsg
+echo -e "\e[1;36mCreating $hub1_vnet_name-fw-nsg NSG...\e[0m"
+az network nsg create -g $rg -n $hub1_vnet_name-fw-nsg -l $location1 -o none
+az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-fw-nsg --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes $myip --source-port-ranges '*' -o none
+az network nsg rule create -g $rg -n AllowHTTP --nsg-name $hub1_vnet_name-fw-nsg --priority 1010 --access Allow --description AllowHTTP --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 80 --source-address-prefixes $myip --source-port-ranges '*' -o none
+az network nsg rule create -g $rg -n AllowHTTPS --nsg-name $hub1_vnet_name-fw-nsg --priority 1020 --access Allow --description AllowHTTPS --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 443 --source-address-prefixes $myip --source-port-ranges '*' -o none
+az network vnet subnet update -g $rg -n $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --nsg $hub1_vnet_name-fw-nsg -o none
+
+
 # vpn gateway
 echo -e "\e[1;36mCreating $hub1_vnet_name-gw VNet...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-gw-pubip0" -l $location1 --allocation-method Static --tags $tag -o none
@@ -265,7 +274,7 @@ config_file=~/config.xml
 curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml
 echo -e "\e[1;36mCopying configuration files to $vm_name and installing opnsense firewall...\e[0m"
 scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
-ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && /home/$admin_username/opnsense_init.sh"
+ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
 rm $opnsense_init_file $config_file
 
 # onprem1 vm nsg
@@ -790,4 +799,5 @@ echo -e "\e[1;36mEffective route table on $spoke2_vnet_name VM...\e[0m"
 az network nic show-effective-route-table -g $rg -n $spoke2_vnet_name -o table
 
 echo -e "\e[1;35m$hub1_vnet_name-fw VM is now up. You can access it by going to https://$hub1_fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
+echo -e "\e[1;35m$hub1_vnet_name-fw VM is now up. You can access. \nUsername: root\nPassword: $admin_password $\e[0m"
 echo -e "\e[1;35mTo test connectivity, connect to onprem1 Gateway VM $onprem1_gw_pubip via ssh and from there, check connectivity to and from hub1 vm $hub1_vm_ip, spoke1 vm $spoke1_vm_ip and spoke2 vm $spoke2_vm_ip....\e[0m"
