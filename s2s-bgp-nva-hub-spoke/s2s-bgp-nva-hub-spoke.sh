@@ -262,7 +262,7 @@ az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
 # configuring opnsense
 echo -e "\e[1;36mConfiguring $hub1_vnet_name-fw...\e[0m"
 config_file=~/config.xml
-curl https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml -O
+curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml
 echo -e "\e[1;36mCopying configuration files to $vm_name and installing opnsense firewall...\e[0m"
 scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
 ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && /home/$admin_username/opnsense_init.sh"
