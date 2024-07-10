@@ -61,7 +61,6 @@ cat <<EOF > $opnsense_init_file
 echo $admin_password | sudo -S pkg update
 sudo pkg upgrade -y
 sudo pkg install -y nano ca_root_nss
-sudo /usr/libexec/locate.updatedb
 sed 's/#PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config > /tmp/sshd_config
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config_tmp
 sudo mv /tmp/sshd_config /etc/ssh/sshd_config
@@ -69,6 +68,7 @@ sudo /etc/rc.d/sshd restart
 echo -e "$admin_password\n$admin_password" | sudo passwd root
 fetch https://raw.githubusercontent.com/opnsense/update/master/src/bootstrap/opnsense-bootstrap.sh.in
 sed 's/reboot/#reboot/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
+sed 's/set -e/#set -e/g' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
 mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
 chmod +x opnsense-bootstrap.sh.in
 sudo sh ~/opnsense-bootstrap.sh.in -y -r 24.1
