@@ -509,6 +509,8 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipta
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo mv /home/$admin_username/frr.conf /etc/frr/frr.conf && sudo mv /home/$admin_username/ipsec.* /etc/ && sudo mv /home/$admin_username/ipsec-vti.sh /etc/strongswan.d/ && chmod +x /etc/strongswan.d/ipsec-vti.sh && sudo service frr restart && sudo ipsec restart"
 echo -e "\e[1;36mChecking the status of S2S VPN between $onprem1_vnet_name-gw and $hub1_vnet_name-gw VPN Gateways...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec stop && sudo ipsec start && sudo ipsec status && ip a"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ip a"
 
 
 # clean up config files
@@ -672,6 +674,7 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipta
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /home/$admin_username/frr.conf /etc/frr/frr.conf && sudo mv /home/$admin_username/ipsec.* /etc/ && sudo mv /home/$admin_username/ipsec-vti.sh /etc/strongswan.d/ && chmod +x /etc/strongswan.d/ipsec-vti.sh && sudo service frr restart && sudo ipsec restart"
 echo -e "\e[1;36mChecking the status of S2S VPN between $onprem2_vnet_name-gw and $hub1_vnet_name-gw VPN Gateways...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ip a"
 
 # clean up config files
 rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
