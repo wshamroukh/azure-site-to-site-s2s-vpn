@@ -2,7 +2,7 @@
 # variables
 location1='uaenorth'
 location2='westeurope'
-rg='s2s-bgp'
+rg='s2s-nva-bgp'
 hub1_vnet_name='hub1'
 hub1_vnet_address='10.1.0.0/16'
 hub1_gw_subnet_address='10.1.0.0/24'
