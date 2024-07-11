@@ -152,7 +152,6 @@ az network nsg rule create -g $rg -n AllowHTTP --nsg-name $hub1_vnet_name-fw-nsg
 az network nsg rule create -g $rg -n AllowHTTPS --nsg-name $hub1_vnet_name-fw-nsg --priority 1020 --access Allow --description AllowHTTPS --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 443 --source-address-prefixes $myip --source-port-ranges '*' -o none
 az network vnet subnet update -g $rg -n $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --nsg $hub1_vnet_name-fw-nsg -o none
 
-
 # vpn gateway
 echo -e "\e[1;36mCreating $hub1_vnet_name-gw VNet...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-gw-pubip0" -l $location1 --allocation-method Static --tags $tag -o none
@@ -170,6 +169,19 @@ hub1_fw_public_ip=$(az network public-ip show -g $rg -n "$hub1_vnet_name-fw" --q
 hub1_fw_lan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-lan --query ipConfigurations[].privateIPAddress -o tsv) && echo $onprem1_vnet_name-gw lan private IP: $hub1_fw_lan_private_ip
 hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv) && echo $onprem1_vnet_name-gw wan private IP: $hub1_fw_wan_private_ip
 
+# opnsense vm boot diagnostics
+echo -e "\e[1;36mEnabling VM boot diagnostics for $hub1_vnet_name-fw...\e[0m"
+az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
+
+# configuring opnsense
+echo -e "\e[1;36mConfiguring $hub1_vnet_name-fw...\e[0m"
+config_file=~/config.xml
+curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml
+echo -e "\e[1;36mCopying configuration files to $vm_name and installing opnsense firewall...\e[0m"
+scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
+ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
+rm $opnsense_init_file $config_file
+
 # onprem1
 echo -e "\e[1;36mCreating $onprem1_vnet_name VNet...\e[0m"
 az network vnet create -g $rg -n $onprem1_vnet_name -l $location1 --address-prefixes $onprem1_vnet_address --subnet-name $onprem1_vm_subnet_name --subnet-prefixes $onprem1_vm_subnet_address --tags $tag -o none
@@ -179,7 +191,7 @@ az network vnet subnet create -g $rg -n $onprem1_gw_subnet_name --address-prefix
 echo -e "\e[1;36mCreating $onprem1_vnet_name-gw VM...\e[0m"
 az network public-ip create -g $rg -n $onprem1_vnet_name-gw -l $location1 --allocation-method static --sku basic --tags $tag -o none
 az network nic create -g $rg -n $onprem1_vnet_name-gw -l $location1 --vnet-name $onprem1_vnet_name --subnet $onprem1_gw_subnet_name --ip-forwarding true --public-ip-address $onprem1_vnet_name-gw --tags $tag -o none
-az vm create -g $rg -n $onprem1_vnet_name-gw -l $location1 --image $vm_image --nics $onprem1_vnet_name-gw --os-disk-name "$onprem1_vnet_name-gw" --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $onprem_gw_cloudinit_file --tags $tag --no-wait -o none
+az vm create -g $rg -n $onprem1_vnet_name-gw -l $location1 --image $vm_image --nics $onprem1_vnet_name-gw --os-disk-name "$onprem1_vnet_name-gw" --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $onprem_gw_cloudinit_file --tags $tag
 # onprem1-gw vm details
 onprem1_gw_pubip=$(az network public-ip show -g $rg -n $onprem1_vnet_name-gw --query ipAddress -o tsv) && echo $onprem1_vnet_name-gw: $onprem1_gw_pubip
 onprem1_gw_private_ip=$(az network nic show -g $rg -n $onprem1_vnet_name-gw --query ipConfigurations[].privateIPAddress -o tsv) && echo $onprem1_vnet_name-gw private IP: $onprem1_gw_private_ip
@@ -311,19 +323,6 @@ az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-pre
 az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$onprem1_vnet_name --address-prefix $onprem1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network vnet subnet update -g $rg -n $onprem2_vm_subnet_name --vnet-name $onprem2_vnet_name --route-table $onprem2_vnet_name -o none
-
-# opnsense vm boot diagnostics
-echo -e "\e[1;36mEnabling VM boot diagnostics for $hub1_vnet_name-fw...\e[0m"
-az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
-
-# configuring opnsense
-echo -e "\e[1;36mConfiguring $hub1_vnet_name-fw...\e[0m"
-config_file=~/config.xml
-curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml
-echo -e "\e[1;36mCopying configuration files to $vm_name and installing opnsense firewall...\e[0m"
-scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
-ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
-rm $opnsense_init_file $config_file
 
 # waiting on hub1 gw to finish deployment
 hub1_gw_id=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --query 'id' -o tsv)
