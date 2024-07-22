@@ -1,6 +1,6 @@
 # s2s with hub1 and two spoke vnets and an opnsense firewall on the hub1 vnet where 0.0.0.0/0 are routed from hub1 spokes vnets to the opnsense firewall
 # variables
-location1='uaenorth'
+location1='centralindia'
 location2='uksouth'
 rg='s2s-nva-bgp'
 hub1_vnet_name='hub1'
@@ -12,7 +12,7 @@ hub1_vm_subnet_address='10.1.1.0/24'
 
 hub1_fw_subnet_name='fw'
 hub1_fw_subnet_address='10.1.2.0/24'
-hub1_fw_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --all --query "[?offer=='freebsd-13_2'].urn" -o tsv | sort -u | tail -n 1) && echo $hub1_fw_vm_image
+hub1_fw_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --all --query "[?offer=='freebsd-14_1'].urn" -o tsv | sort -u | tail -n 1) && echo $hub1_fw_vm_image
 az vm image terms accept --urn $hub1_fw_vm_image -o none
 
 spoke1_vnet_name='spoke1'
@@ -60,7 +60,6 @@ cat <<EOF > $opnsense_init_file
 #!/usr/local/bin/bash
 echo $admin_password | sudo -S pkg update
 sudo pkg upgrade -y
-sudo pkg install -y nano ca_root_nss
 sed 's/#PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config > /tmp/sshd_config
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config_tmp
 sudo mv /tmp/sshd_config /etc/ssh/sshd_config
@@ -68,10 +67,9 @@ sudo /etc/rc.d/sshd restart
 echo -e "$admin_password\n$admin_password" | sudo passwd root
 fetch https://raw.githubusercontent.com/opnsense/update/master/src/bootstrap/opnsense-bootstrap.sh.in
 sed 's/reboot/#reboot/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
-sed 's/set -e/#set -e/g' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
 mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
-chmod +x opnsense-bootstrap.sh.in
-sudo sh ~/opnsense-bootstrap.sh.in -y -r 24.1
+sudo chmod +x opnsense-bootstrap.sh.in
+sudo sh ~/opnsense-bootstrap.sh.in -y -r 24.7
 sudo cp ~/config.xml /usr/local/etc/config.xml
 sudo reboot
 EOF
@@ -162,11 +160,9 @@ az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --publ
 echo -e "\e[1;36mCreating $hub1_vnet_name-fw VM...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-fw" -l $location1 --allocation-method Static --sku Basic --tags $tag -o none
 az network nic create -g $rg -n "$hub1_vnet_name-fw-wan" --subnet $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.2.250 --public-ip-address "$hub1_vnet_name-fw" --tags $tag -o none
-az network nic create -g $rg -n "$hub1_vnet_name-fw-lan" --subnet $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.1.250 --tags $tag -o none
-az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" "$hub1_vnet_name-fw-lan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2s --admin-username $admin_username --generate-ssh-keys --tags $tag --no-wait
+az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2s --admin-username $admin_username --generate-ssh-keys --tags $tag
 # hub1 fw opnsense vm details:
 hub1_fw_public_ip=$(az network public-ip show -g $rg -n "$hub1_vnet_name-fw" --query 'ipAddress' --output tsv) && echo $hub1_vnet_name-fw public ip: $hub1_fw_public_ip
-hub1_fw_lan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-lan --query ipConfigurations[].privateIPAddress -o tsv) && echo $onprem1_vnet_name-gw lan private IP: $hub1_fw_lan_private_ip
 hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv) && echo $onprem1_vnet_name-gw wan private IP: $hub1_fw_wan_private_ip
 
 # opnsense vm boot diagnostics
