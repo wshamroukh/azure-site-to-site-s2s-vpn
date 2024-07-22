@@ -1,5 +1,5 @@
 rg=s2s-nat-bgp
-location1=uaenorth
+location1=centralindia
 location2=westeurope
 
 hub1_vnet_name=hub1
