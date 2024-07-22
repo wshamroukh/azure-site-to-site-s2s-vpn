@@ -1,6 +1,6 @@
 rg=s2s
 location1=centralindia
-location2=westeurope
+location2=westus3
 
 hub1_vnet_name=hub1
 hub1_vnet_address=10.1.0.0/16
