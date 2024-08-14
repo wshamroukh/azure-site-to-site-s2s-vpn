@@ -93,7 +93,7 @@ az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_v
 
 # hub1 VPN GW
 echo -e "\e[1;36mDeploying $hub1_vnet_name-gw VPN Gateway...\e[0m"
-az network public-ip create -g $rg -n $hub1_vnet_name-gw-pubip -l $location1 --allocation-method Dynamic -o none
+az network public-ip create -g $rg -n $hub1_vnet_name-gw-pubip -l $location1 --allocation-method Static -o none
 az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw --public-ip-addresses $hub1_vnet_name-gw-pubip --vnet $hub1_vnet_name --sku VpnGw1 --gateway-type Vpn --vpn-type RouteBased --no-wait
 
 # onprem1 vnet
