@@ -1,6 +1,6 @@
 rg=s2s-bgp
 location1=centralindia
-location2=westus3
+location2=centralindia
 
 hub1_vnet_name=hub1
 hub1_vnet_address=10.1.0.0/16
@@ -137,7 +137,7 @@ az vm create -g $rg -n $onprem1_vnet_name-gw -l $location1 --image $vm_image --n
 # onprem1 gw details
 onprem1_gw_pubip=$(az network public-ip show -g $rg -n $onprem1_vnet_name-gw --query ipAddress -o tsv) && echo $onprem1_vnet_name-gw public ip: $onprem1_gw_pubip
 onprem1_gw_private_ip=$(az network nic show -g $rg -n $onprem1_vnet_name-gw --query ipConfigurations[].privateIPAddress -o tsv)  && echo $onprem1_vnet_name-gw private ip: $onprem1_gw_private_ip
-onprem1_gw_nic_default_gw=$(first_ip $onprem1_gw_subnet_address)
+onprem1_gw_nic_default_gw=$(first_ip $onprem1_gw_subnet_address) && echo $onprem1_vnet_name-gw default gateway ip: $onprem1_gw_nic_default_gw
 
 # onprem1 local network gateway
 echo -e "\e[1;36mDeploying $onprem1_vnet_name-gw local network gateway resource...\e[0m"
