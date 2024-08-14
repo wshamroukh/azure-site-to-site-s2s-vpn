@@ -1,6 +1,6 @@
 rg=s2s-nat-bgp
 location1=centralindia
-location2=westus3
+location2=centralindia
 
 hub1_vnet_name=hub1
 hub1_vnet_address=10.1.0.0/16

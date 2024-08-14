@@ -1,7 +1,7 @@
 # s2s with hub1 and two spoke vnets and an opnsense firewall on the hub1 vnet where 0.0.0.0/0 are routed from hub1 spokes vnets to the opnsense firewall
 # variables
 location1='centralindia'
-location2='uksouth'
+location2='centralindia'
 rg='s2s-nva-bgp'
 hub1_vnet_name='hub1'
 hub1_vnet_address='10.1.0.0/16'
