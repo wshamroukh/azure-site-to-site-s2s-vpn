@@ -796,5 +796,5 @@ echo -e "\e[1;36mEffective route table on $spoke2_vnet_name VM...\e[0m"
 az network nic show-effective-route-table -g $rg -n $spoke2_vnet_name -o table
 
 echo -e "\e[1;35m$hub1_vnet_name-fw VM is now up. You can access it by going to https://$hub1_fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
-echo -e "\e[1;35mYou can also ssh root@$hub1_fw_public_ip\nPassword: $admin_password\e[0m"
+echo -e "\e[1;35mYou can also ssh root@$hub1_fw_public_ip\nPassword: opnsense\e[0m"
 echo -e "\e[1;35mTo test connectivity, connect to onprem1 Gateway VM $onprem1_gw_pubip via ssh and from there, check connectivity to and from hub1 vm $hub1_vm_ip, spoke1 vm $spoke1_vm_ip and spoke2 vm $spoke2_vm_ip....\e[0m"
