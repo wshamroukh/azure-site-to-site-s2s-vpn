@@ -68,6 +68,8 @@ echo -e "$admin_password\n$admin_password" | sudo passwd root
 fetch https://raw.githubusercontent.com/opnsense/update/master/src/bootstrap/opnsense-bootstrap.sh.in
 sed 's/reboot/#reboot/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
 mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
+sed 's/set -e/#set -e/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
+mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
 sudo chmod +x opnsense-bootstrap.sh.in
 sudo sh ~/opnsense-bootstrap.sh.in -y -r 24.7
 sudo cp ~/config.xml /usr/local/etc/config.xml
