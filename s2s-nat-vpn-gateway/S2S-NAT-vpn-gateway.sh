@@ -312,8 +312,8 @@ case "${PLUTO_VERB}" in
         ip tunnel add "${VTI_IF}" local "${PLUTO_ME}" remote "${PLUTO_PEER}" mode vti \
             okey "${PLUTO_MARK_OUT%%/*}" ikey "${PLUTO_MARK_IN%%/*}"
         ip link set "${VTI_IF}" up
-        ip route add ${hub1_nat_address} dev "${VTI_IF}"
-        ip route add ${onprem2_nat_address} dev "${VTI_IF}"
+        ip route add $hub1_nat_address dev "${VTI_IF}"
+        ip route add $onprem2_nat_address dev "${VTI_IF}"
         sysctl -w "net.ipv4.conf.${VTI_IF}.disable_policy=1"
         ;;
     down-client)
@@ -321,6 +321,10 @@ case "${PLUTO_VERB}" in
         ;;
 esac
 EOT
+
+sed -i "s,\\\$hub1_nat_address,${hub1_nat_address}," $ipsec_vti_file
+sed -i "s,\\\$onprem2_nat_address,${onprem2_nat_address}," $ipsec_vti_file
+
 
 ##### copy files to onprem gw
 echo -e "\e[1;36mCopying and applying S2S VPN Config files to $onprem1_vnet_name-gw Gateway VM...\e[0m"
@@ -398,8 +402,8 @@ case "${PLUTO_VERB}" in
         ip tunnel add "${VTI_IF}" local "${PLUTO_ME}" remote "${PLUTO_PEER}" mode vti \
             okey "${PLUTO_MARK_OUT%%/*}" ikey "${PLUTO_MARK_IN%%/*}"
         ip link set "${VTI_IF}" up
-        ip route add ${hub1_nat_address} dev "${VTI_IF}"
-        ip route add ${onprem1_nat_address} dev "${VTI_IF}"
+        ip route add $hub1_nat_address dev "${VTI_IF}"
+        ip route add $onprem1_nat_address dev "${VTI_IF}"
         sysctl -w "net.ipv4.conf.${VTI_IF}.disable_policy=1"
         ;;
     down-client)
@@ -407,6 +411,10 @@ case "${PLUTO_VERB}" in
         ;;
 esac
 EOT
+
+sed -i "s,\\\$hub1_nat_address,${hub1_nat_address}," $ipsec_vti_file
+sed -i "s,\\\$onprem1_nat_address,${onprem1_nat_address}," $ipsec_vti_file
+
 
 ##### copy files to onprem gw
 echo -e "\e[1;36mCopying and applying S2S VPN Config files to $onprem2_vnet_name-gw Gateway VM...\e[0m"
