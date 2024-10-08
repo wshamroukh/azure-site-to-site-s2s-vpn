@@ -439,15 +439,15 @@ IPTABLES=$(which iptables)
 PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
 PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
 case "$PLUTO_CONNECTION" in
-  ${hub1_vnet_name}-gw0)
+  $hub1_vnet_name-gw0)
     VTI_INTERFACE=vti0
-    VTI_LOCALADDR=${onprem1_gw_vti0}/32
-    VTI_REMOTEADDR=${hub1_gw_bgp_ip0}/32
+    VTI_LOCALADDR=$onprem1_gw_vti0/32
+    VTI_REMOTEADDR=$hub1_gw_bgp_ip0/32
     ;;
-  ${hub1_vnet_name}-gw1)
+   $hub1_vnet_name-gw1)
     VTI_INTERFACE=vti1
-    VTI_LOCALADDR=${onprem1_gw_vti1}/32
-    VTI_REMOTEADDR=${hub1_gw_bgp_ip1}/32
+    VTI_LOCALADDR=$onprem1_gw_vti1/32
+    VTI_REMOTEADDR=$hub1_gw_bgp_ip1/32
     ;;
 esac
 case "${PLUTO_VERB}" in
@@ -473,6 +473,13 @@ sysctl -w net.ipv4.ip_forward=1
 sysctl -w net.ipv4.conf.eth0.disable_xfrm=1
 sysctl -w net.ipv4.conf.eth0.disable_policy=1
 EOT
+
+sed -i "/\$onprem1_gw_vti0/ s//$onprem1_gw_vti0/" $ipsec_vti_file
+sed -i "/\$onprem1_gw_vti1/ s//$onprem1_gw_vti1/" $ipsec_vti_file
+sed -i "/\$hub1_gw_bgp_ip0/ s//$hub1_gw_bgp_ip0/" $ipsec_vti_file
+sed -i "/\$hub1_gw_bgp_ip1/ s//$hub1_gw_bgp_ip1/" $ipsec_vti_file
+sed -i "/\$hub1_vnet_name-gw0/ s//$hub1_vnet_name-gw0/" $ipsec_vti_file
+sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 
 # frr.conf
 frr_conf_file=~/frr.conf
@@ -595,15 +602,15 @@ IPTABLES=$(which iptables)
 PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
 PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
 case "$PLUTO_CONNECTION" in
-  ${hub1_vnet_name}-gw0)
+  $hub1_vnet_name-gw0)
     VTI_INTERFACE=vti0
-    VTI_LOCALADDR=${onprem2_gw_vti0}/32
-    VTI_REMOTEADDR=${hub1_gw_bgp_ip0}/32
+    VTI_LOCALADDR=$onprem2_gw_vti0/32
+    VTI_REMOTEADDR=$hub1_gw_bgp_ip0/32
     ;;
-  ${hub1_vnet_name}-gw1)
+   $hub1_vnet_name-gw1)
     VTI_INTERFACE=vti1
-    VTI_LOCALADDR=${onprem2_gw_vti1}/32
-    VTI_REMOTEADDR=${hub1_gw_bgp_ip1}/32
+    VTI_LOCALADDR=$onprem2_gw_vti1/32
+    VTI_REMOTEADDR=$hub1_gw_bgp_ip1/32
     ;;
 esac
 case "${PLUTO_VERB}" in
@@ -629,6 +636,13 @@ sysctl -w net.ipv4.ip_forward=1
 sysctl -w net.ipv4.conf.eth0.disable_xfrm=1
 sysctl -w net.ipv4.conf.eth0.disable_policy=1
 EOT
+
+sed -i "/\$onprem2_gw_vti0/ s//$onprem2_gw_vti0/" $ipsec_vti_file
+sed -i "/\$onprem2_gw_vti1/ s//$onprem2_gw_vti1/" $ipsec_vti_file
+sed -i "/\$hub1_gw_bgp_ip0/ s//$hub1_gw_bgp_ip0/" $ipsec_vti_file
+sed -i "/\$hub1_gw_bgp_ip1/ s//$hub1_gw_bgp_ip1/" $ipsec_vti_file
+sed -i "/\$hub1_vnet_name-gw0/ s//$hub1_vnet_name-gw0/" $ipsec_vti_file
+sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 
 # frr.conf
 frr_conf_file=~/frr.conf
