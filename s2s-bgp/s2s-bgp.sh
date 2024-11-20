@@ -151,7 +151,7 @@ az vm create -g $rg -n $onprem2_vnet_name-gw -l $location2 --image $vm_image --n
 # onprem2 gw details
 onprem2_gw_pubip=$(az network public-ip show -g $rg -n $onprem2_vnet_name-gw --query ipAddress -o tsv) && echo $onprem2_vnet_name-gw public ip: $onprem2_gw_pubip
 onprem2_gw_private_ip=$(az network nic show -g $rg -n $onprem2_vnet_name-gw --query ipConfigurations[].privateIPAddress -o tsv)  && echo $onprem2_vnet_name-gw private ip: $onprem2_gw_private_ip
-onprem2_gw_nic_default_gw=$(first_ip $onprem2_gw_subnet_address) echo $onprem2_vnet_name-gw default gateway ip: $onprem2_gw_nic_default_gw
+onprem2_gw_nic_default_gw=$(first_ip $onprem2_gw_subnet_address) && echo $onprem2_vnet_name-gw default gateway ip: $onprem2_gw_nic_default_gw
 
 # onprem2 local network gateway
 echo -e "\e[1;36mDeploying $onprem2_vnet_name-gw local network gateway resource...\e[0m"
