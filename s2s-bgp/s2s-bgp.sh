@@ -34,8 +34,8 @@ onprem2_gw_vti1=172.22.0.251
 onprem2_vm_subnet_name=vm
 onprem2_vm_subnet_address=172.22.1.0/24
 
-default_address1=0.0.0.0/1
-default_address2=128.0.0.0/1
+advertised_address1=1.1.1.1/32
+advertised_address2=2.2.2.2/32
 admin_username=$(whoami)
 myip=$(curl -s4 https://ifconfig.co/)
 psk=secret12345
@@ -396,8 +396,7 @@ log syslog informational
 no ipv6 forwarding
 service integrated-vtysh-config
 !
-ip route $default_address1 $onprem1_gw_nic_default_gw
-ip route $default_address2 $onprem1_gw_nic_default_gw
+ip route $advertised_address1 $onprem1_gw_nic_default_gw
 ip route $onprem1_vnet_address $onprem1_gw_nic_default_gw
 ip route $hub1_gw_bgp_ip0/32 $onprem1_gw_nic_default_gw
 ip route $hub1_gw_bgp_ip1/32 $onprem1_gw_nic_default_gw
@@ -413,6 +412,7 @@ router bgp $onprem1_gw_asn
  neighbor $hub1_gw_bgp_ip1 ebgp-multihop 2
  !
  address-family ipv4 unicast
+  network $advertised_address1
   network $onprem1_vnet_address
   neighbor $hub1_gw_bgp_ip0 soft-reconfiguration inbound
   neighbor $hub1_gw_bgp_ip1 soft-reconfiguration inbound
@@ -567,8 +567,7 @@ log syslog informational
 no ipv6 forwarding
 service integrated-vtysh-config
 !
-ip route $default_address1 $onprem2_gw_nic_default_gw
-ip route $default_address2 $onprem2_gw_nic_default_gw
+ip route $advertised_address2 $onprem2_gw_nic_default_gw
 ip route $onprem2_vnet_address $onprem2_gw_nic_default_gw
 ip route $hub1_gw_bgp_ip0/32 $onprem2_gw_nic_default_gw
 ip route $hub1_gw_bgp_ip1/32 $onprem2_gw_nic_default_gw
@@ -584,6 +583,7 @@ router bgp $onprem2_gw_asn
  neighbor $hub1_gw_bgp_ip1 ebgp-multihop 2
  !
  address-family ipv4 unicast
+  network $advertised_address2
   network $onprem2_vnet_address
   neighbor $hub1_gw_bgp_ip0 soft-reconfiguration inbound
   neighbor $hub1_gw_bgp_ip1 soft-reconfiguration inbound
