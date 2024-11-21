@@ -525,7 +525,6 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "chmod +x /etc/strongswan.d/ipsec-vti.sh"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec restart"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo service frr restart"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status && ip a"
 
 # deleting files from local session
 rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file $onprem_gw_cloudinit_file
@@ -693,7 +692,6 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "chmod +x /etc/strongswan.d/ipsec-vti.sh"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec restart"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo service frr restart"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
 
 # deleting files from local session
 rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
@@ -702,10 +700,15 @@ rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
 # Diagnosis before directing all the traffic to AZ Firewall #
 #############################################################
 echo -e "\e[1;36mChecking BGP routing on $onprem1_vnet_name-gw gateway VM...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec stop && sudo ipsec start && sudo ipsec status && ip a"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show bgp summary'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip route'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show bgp all'"
+echo -e "\e[1;36mChecking received routes on $onprem1_vnet_name-gw from $hub1_vnet_name-gw...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip0 received-routes'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 received-routes'"
+echo -e "\e[1;36mChecking advertised routes from $onprem1_vnet_name-gw to $hub1_vnet_name-gw...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip0 advertised-routes'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 advertised-routes'"
 
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw gateway VM to the rest of network topology...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip"
@@ -714,10 +717,15 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $onprem2_vm_ip"
 
 echo -e "\e[1;36mChecking BGP routing on $onprem2_vnet_name-gw gateway vm...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status && ip a"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show bgp summary'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip route'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show bgp all'"
+echo -e "\e[1;36mChecking received routes on $onprem2_vnet_name-gw from $hub1_vnet_name-gw...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip0 received-routes'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 received-routes'"
+echo -e "\e[1;36mChecking advertised routes from $onprem2_vnet_name-gw to $hub1_vnet_name-gw...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip0 advertised-routes'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 advertised-routes'"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw gateway VM to the rest of network topology...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip"
