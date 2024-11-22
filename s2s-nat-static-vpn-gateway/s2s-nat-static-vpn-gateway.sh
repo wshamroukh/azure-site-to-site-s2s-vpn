@@ -319,7 +319,7 @@ tee -a $ipsec_vti_file > /dev/null <<'EOT'
 #
 set -o nounset
 set -o errexit
-
+echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 VTI_IF="vti${PLUTO_UNIQUEID}"
 
 case "${PLUTO_VERB}" in
@@ -427,7 +427,7 @@ tee -a $ipsec_vti_file > /dev/null <<'EOT'
 #
 set -o nounset
 set -o errexit
-
+echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 VTI_IF="vti${PLUTO_UNIQUEID}"
 
 case "${PLUTO_VERB}" in

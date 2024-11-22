@@ -424,6 +424,7 @@ IP=$(which ip)
 IPTABLES=$(which iptables)
 PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
 PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
+echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "$PLUTO_CONNECTION" in
   $hub1_vnet_name-gw0)
     VTI_INTERFACE=vti0
@@ -596,6 +597,7 @@ IP=$(which ip)
 IPTABLES=$(which iptables)
 PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
 PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
+echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "$PLUTO_CONNECTION" in
   $hub1_vnet_name-gw0)
     VTI_INTERFACE=vti0
