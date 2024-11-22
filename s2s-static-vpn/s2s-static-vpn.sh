@@ -339,6 +339,7 @@ rm $psk_file $ipsec_file
 #############
 echo -e "\e[1;36mChecking S2S VPN Tunnel on $onprem1_vnet_name-gw...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec statusall"
 
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw Gateway VM to $hub1_vnet_name VM...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $hub1_vm_ip -c 3"
@@ -351,6 +352,7 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $onp
 
 echo -e "\e[1;36mChecking S2S VPN Tunnel on $onprem2_vnet_name-gw...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec statusall"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw Gateway VM to $hub1_vnet_name VM...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $hub1_vm_ip -c 3"
