@@ -331,6 +331,9 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec restart"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
 
+# clean up config files
+rm $psk_file $ipsec_file
+
 #############
 # Diagnosis #
 #############
@@ -358,5 +361,5 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $spo
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw Gateway VM to $onprem1_vnet_name VM...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $onprem1_vm_ip -c 3"
 
-# clean up config files
-rm $psk_file $ipsec_file
+#cleanup
+# az group delete -g $rg -y --no-wait

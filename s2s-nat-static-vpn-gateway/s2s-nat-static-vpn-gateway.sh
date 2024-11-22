@@ -487,3 +487,5 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $hub
 echo -e "\e[1;36mChecking the connectivity from $onprem2_vnet_name-gw to $onprem2_vnet_name VM using the NAT'ed IP address ($onprem2_vm_nat_ip)...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $onprem1_vm_nat_ip -c 3"
 
+#cleanup
+# az group delete -g $rg -y --no-wait

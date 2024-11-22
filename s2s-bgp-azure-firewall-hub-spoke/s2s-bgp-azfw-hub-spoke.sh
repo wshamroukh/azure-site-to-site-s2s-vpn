@@ -788,3 +788,6 @@ echo -e "\e[1;36mEffective route table on $spoke1_vnet_name VM...\e[0m"
 az network nic show-effective-route-table -g $rg -n $spoke1_vnet_name -o table
 echo -e "\e[1;36mEffective route table on $spoke2_vnet_name VM...\e[0m"
 az network nic show-effective-route-table -g $rg -n $spoke2_vnet_name -o table
+
+#cleanup
+# az group delete -g $rg -y --no-wait
