@@ -312,7 +312,7 @@ conn $hub1_vnet_name-gw1
 EOF
 
 ipsec_vti_file=~/ipsec-vti.sh
-tee -a $ipsec_vti_file > /dev/null <<'EOT'
+tee $ipsec_vti_file > /dev/null <<'EOT'
 #!/bin/bash
 #
 # /etc/strongswan.d/ipsec-vti.sh
@@ -420,7 +420,7 @@ conn $hub1_vnet_name-gw1
 EOF
 
 ipsec_vti_file=~/ipsec-vti.sh
-tee -a $ipsec_vti_file > /dev/null <<'EOT'
+tee $ipsec_vti_file > /dev/null <<'EOT'
 #!/bin/bash
 #
 # /etc/strongswan.d/ipsec-vti.sh

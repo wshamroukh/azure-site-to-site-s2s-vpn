@@ -378,7 +378,7 @@ EOF
 
 # ipsec-vti.sh
 ipsec_vti_file=~/ipsec-vti.sh
-tee -a $ipsec_vti_file > /dev/null <<'EOT'
+tee $ipsec_vti_file > /dev/null <<'EOT'
 #!/bin/bash
 
 #
@@ -553,7 +553,7 @@ EOF
 
 # ipsec-vti.sh
 ipsec_vti_file=~/ipsec-vti.sh
-tee -a $ipsec_vti_file > /dev/null <<'EOT'
+tee $ipsec_vti_file > /dev/null <<'EOT'
 #!/bin/bash
 
 #
