@@ -733,7 +733,7 @@ echo -e "\e[1;36mDeploying $spoke1_vnet_name route table and attaching it to $sp
 az network route-table create -g $rg -n $spoke1_vnet_name -l $location1 --disable-bgp-route-propagation true -o none
 az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type VirtualAppliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
 az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type VirtualAppliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
-az network vnet subnet update -g $rg  -n $spoke1_vm_subnet_name --vnet-name $spoke1_vnet_name --route-table $spoke1_vnet_name -o none
+az network vnet subnet update -g $rg -n $spoke1_vm_subnet_name --vnet-name $spoke1_vnet_name --route-table $spoke1_vnet_name -o none
 
 # spoke2 route table
 echo -e "\e[1;36mDeploying $spoke2_vnet_name route table and attaching it to $spoke2_vm_subnet_name subnet...\e[0m"
