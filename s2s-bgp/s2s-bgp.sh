@@ -65,7 +65,7 @@ function wait_until_finished {
      wait_interval=15
      resource_id=$1
      resource_name=$(echo $resource_id | cut -d/ -f 9)
-     echo -e "\e[1;37mWaiting for resource $resource_name to finish provisioning...\e[0m"
+     echo -e "\e[1;35mWaiting for resource $resource_name to finish provisioning...\e[0m"
      start_time=`date +%s`
      state=$(az resource show --id $resource_id --query properties.provisioningState -o tsv)
      until [[ "$state" == "Succeeded" ]] || [[ "$state" == "Failed" ]] || [[ -z "$state" ]]
@@ -80,7 +80,7 @@ function wait_until_finished {
         run_time=$(expr `date +%s` - $start_time)
         ((minutes=${run_time}/60))
         ((seconds=${run_time}%60))
-        echo -e "\e[1;35mResource $resource_name provisioning state is $state, wait time $minutes minutes and $seconds seconds\e[0m"
+        echo -e "\e[1;32mResource $resource_name provisioning state is $state, wait time $minutes minutes and $seconds seconds\e[0m"
      fi
 }
 
