@@ -132,6 +132,7 @@ wait_until_finished $hub1_gw_id
 # Getting hub1 VPN GW details
 echo -e "\e[1;36mGetting $hub1_vnet_name-gw VPN Gateway details...\e[0m"
 hub1_gw_pubip=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0]' -o tsv) && echo $hub1_vnet_name-gw: $hub1_gw_pubip
+hub1_gw_bgp_ip=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0]' -o tsv) && echo $hub1_vnet_name-gw: $hub1_gw_bgp_ip
 
 # waiting on hub2 vpn gw to finish deployment
 hub2_gw_id=$(az network vnet-gateway show -g $rg -n $hub2_vnet_name-gw --query id -o tsv)
@@ -140,6 +141,7 @@ wait_until_finished $hub2_gw_id
 # Getting hub2 VPN GW details
 echo -e "\e[1;36mGetting $hub2_vnet_name-gw VPN Gateway details...\e[0m"
 hub2_gw_pubip=$(az network vnet-gateway show -n $hub2_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0]' -o tsv) && echo $hub2_vnet_name-gw: $hub2_gw_pubip
+hub2_gw_bgp_ip=$(az network vnet-gateway show -n $hub2_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0]' -o tsv) && echo $hub2_vnet_name-gw: $hub2_gw_bgp_ip
 
 # VNet Peering between hub1 and spoke1
 echo -e "\e[1;36mCreating VNet peerring between $hub1_vnet_name and $spoke1_vnet_name...\e[0m"
@@ -168,6 +170,17 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_jmp_pip "ping -c 3 $hu
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_jmp_pip "ping -c 3 $spoke1_vm_ip"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_jmp_pip "ping -c 3 $hub2_vm_ip"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_jmp_pip "ping -c 3 $spoke2_vm_ip"
+
+# BGP data 
+echo -e "\e[1;36mChecking bgp status on $hub1_vnet_name-gw..\e[0m"
+az network vnet-gateway list-bgp-peer-status -g $rg -n $hub1_vnet_name-gw -o table
+az network vnet-gateway list-advertised-routes -g $rg -n $hub1_vnet_name-gw --peer $hub2_gw_bgp_ip -o table
+az network vnet-gateway list-learned-routes -g $rg -n $hub1_vnet_name-gw -o table
+
+echo -e "\e[1;36mChecking bgp status on $hub2_vnet_name-gw..\e[0m"
+az network vnet-gateway list-bgp-peer-status -g $rg -n $hub2_vnet_name-gw -o table
+az network vnet-gateway list-advertised-routes -g $rg -n $hub2_vnet_name-gw --peer $hub1_gw_bgp_ip -o table
+az network vnet-gateway list-learned-routes -g $rg -n $hub2_vnet_name-gw -o table
 
 #cleanup
 # az group delete -g $rg -y --no-wait
