@@ -502,8 +502,8 @@
   </widgets>
   <revision>
     <username>root@45.155.47.233</username>
-    <description>/api/firewall/alias/set made changes</description>
-    <time>1728368232.4158</time>
+    <time>1733216111.262</time>
+    <description>/firewall_nat_out.php made changes</description>
   </revision>
   <OPNsense>
     <captiveportal version="1.0.2">
@@ -526,7 +526,7 @@
       <activeTimeout>1800</activeTimeout>
       <inactiveTimeout>15</inactiveTimeout>
     </Netflow>
-    <IDS version="1.0.9">
+    <IDS version="1.1.0">
       <rules/>
       <policies/>
       <userDefinedRules/>
@@ -552,6 +552,19 @@
         <syslog_eve>0</syslog_eve>
         <LogPayload>0</LogPayload>
         <verbosity/>
+        <eveLog>
+          <http>
+            <enable>0</enable>
+            <extended>0</extended>
+            <dumpAllHeaders/>
+          </http>
+          <tls>
+            <enable>0</enable>
+            <extended>0</extended>
+            <sessionResumption>0</sessionResumption>
+            <custom/>
+          </tls>
+        </eveLog>
       </general>
     </IDS>
     <proxy version="1.0.5">
@@ -1138,7 +1151,7 @@ onprem2</content>
       </general>
     </wireguard>
     <Kea>
-      <dhcp4 version="1.0.0">
+      <dhcp4 version="1.0.1">
         <general>
           <enabled>0</enabled>
           <interfaces/>
@@ -1148,6 +1161,7 @@ onprem2</content>
         <ha>
           <enabled>0</enabled>
           <this_server_name/>
+          <max_unacked_clients>2</max_unacked_clients>
         </ha>
         <subnets/>
         <reservations/>
@@ -1161,11 +1175,26 @@ onprem2</content>
         </general>
       </ctrl_agent>
     </Kea>
-    <OpenVPN version="1.0.0">
+    <OpenVPN version="1.0.1">
       <Overwrites/>
       <Instances/>
       <StaticKeys/>
     </OpenVPN>
+    <trust>
+      <general version="1.0.1">
+        <store_intermediate_certs>0</store_intermediate_certs>
+        <install_crls>0</install_crls>
+        <fetch_crls>0</fetch_crls>
+        <enable_legacy_sect>1</enable_legacy_sect>
+        <enable_config_constraints>0</enable_config_constraints>
+        <CipherString/>
+        <Ciphersuites/>
+        <SignatureAlgorithms/>
+        <groups/>
+        <MinProtocol/>
+        <MinProtocol_DTLS/>
+      </general>
+    </trust>
   </OPNsense>
   <cert uuid="9ef16521-8b80-4009-9b02-3d4e40cb8c05">
     <refid>598102500f355</refid>
@@ -1226,7 +1255,7 @@ onprem2</content>
         </destination>
         <descr/>
         <category/>
-        <interface>wan</interface>
+        <interface>lan</interface>
         <tag/>
         <tagged/>
         <poolopts/>
@@ -1237,12 +1266,11 @@ onprem2</content>
           <time>1641199666.6645</time>
           <description>/firewall_nat_out_edit.php made changes</description>
         </created>
-        <target/>
-        <targetip_subnet>0</targetip_subnet>
+        <target>lanip</target>
         <sourceport/>
         <updated>
-          <username>root@87.200.156.177</username>
-          <time>1641199680.4559</time>
+          <username>root@45.155.47.233</username>
+          <time>1733216109.0076</time>
           <description>/firewall_nat_out_edit.php made changes</description>
         </updated>
       </rule>
