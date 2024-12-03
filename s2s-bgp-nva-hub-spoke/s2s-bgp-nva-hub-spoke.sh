@@ -45,8 +45,8 @@ onprem2_gw_asn=65522
 onprem2_gw_vti0=172.22.0.250
 onprem2_gw_vti1=172.22.0.251
 
-default0=1.1.1.1/32
-default1=2.2.2.2/32
+default0=0.0.0.0/1
+default1=128.0.0.0/1
 psk='secret12345'
 tag='scenario=s2s-nva-hub-spoke'
 admin_username=$(whoami)
