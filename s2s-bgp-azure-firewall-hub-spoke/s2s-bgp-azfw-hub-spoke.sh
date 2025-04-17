@@ -48,7 +48,7 @@ psk=secret12345
 vm_size=Standard_B2ats_v2
 
 
-cloudinit_file=~/cloudinit.txt
+cloudinit_file=cloudinit.txt
 cat <<EOF > $cloudinit_file
 #cloud-config
 runcmd:
