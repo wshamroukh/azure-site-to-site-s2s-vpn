@@ -78,7 +78,7 @@ sudo pkg install -y bash git
 sudo ln -s /usr/local/bin/python3.11 /usr/local/bin/python
 git clone https://github.com/Azure/WALinuxAgent.git
 cd ~/WALinuxAgent/
-git checkout v2.11.1.12
+git checkout v2.9.1.1
 sudo python setup.py install
 sudo ln -sf /usr/local/sbin/waagent /usr/sbin/waagent
 sudo service waagent start
