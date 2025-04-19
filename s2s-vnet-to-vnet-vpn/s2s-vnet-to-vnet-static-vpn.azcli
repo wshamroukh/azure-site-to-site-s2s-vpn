@@ -37,11 +37,11 @@ function wait_until_finished {
      resource_name=$(echo $resource_id | cut -d/ -f 9)
      echo -e "\e[1;35mWaiting for resource $resource_name to finish provisioning...\e[0m"
      start_time=`date +%s`
-     state=$(az resource show --id $resource_id --query properties.provisioningState -o tsv)
+     state=$(az resource show --id $resource_id --query properties.provisioningState -o tsv | tr -d '\r')
      until [[ "$state" == "Succeeded" ]] || [[ "$state" == "Failed" ]] || [[ -z "$state" ]]
      do
         sleep $wait_interval
-        state=$(az resource show --id $resource_id --query properties.provisioningState -o tsv)
+        state=$(az resource show --id $resource_id --query properties.provisioningState -o tsv | tr -d '\r')
      done
      if [[ -z "$state" ]]
      then
@@ -96,48 +96,48 @@ az network vnet create -g $rg -n $spoke2_vnet_name -l $location1 --address-prefi
 echo -e "\e[1;36mDeploying $hub1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $hub1_vnet_name -l $location1 --vnet-name $hub1_vnet_name --subnet $hub1_vm_subnet_name -o none
 az vm create -g $rg -n $hub1_vnet_name -l $location1 --image Ubuntu2404 --nics $hub1_vnet_name --os-disk-name $hub1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-hub1_vm_ip=$(az network nic show -g $rg -n $hub1_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv)
+hub1_vm_ip=$(az network nic show -g $rg -n $hub1_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv | tr -d '\r')
 
 # spoke1 vm
 echo -e "\e[1;36mDeploying $spoke1_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $spoke1_vnet_name -l $location1 --vnet-name $spoke1_vnet_name --subnet $spoke1_vm_subnet_name -o none
 az vm create -g $rg -n $spoke1_vnet_name -l $location1 --image Ubuntu2404 --nics $spoke1_vnet_name --os-disk-name $spoke1_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-spoke1_vm_ip=$(az network nic show -g $rg -n $spoke1_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv)
+spoke1_vm_ip=$(az network nic show -g $rg -n $spoke1_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv | tr -d '\r')
 
 # hub2 vm
 echo -e "\e[1;36mDeploying $hub2_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $hub2_vnet_name -l $location1 --vnet-name $hub2_vnet_name --subnet $hub2_vm_subnet_name -o none
 az vm create -g $rg -n $hub2_vnet_name -l $location1 --image Ubuntu2404 --nics $hub2_vnet_name --os-disk-name $hub2_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-hub2_vm_ip=$(az network nic show -g $rg -n $hub2_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv)
+hub2_vm_ip=$(az network nic show -g $rg -n $hub2_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv | tr -d '\r')
 
 # spoke2 vm
 echo -e "\e[1;36mDeploying $spoke2_vnet_name VM...\e[0m"
 az network nic create -g $rg -n $spoke2_vnet_name -l $location1 --vnet-name $spoke2_vnet_name --subnet $spoke2_vm_subnet_name -o none
 az vm create -g $rg -n $spoke2_vnet_name -l $location1 --image Ubuntu2404 --nics $spoke2_vnet_name --os-disk-name $spoke2_vnet_name --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
-spoke2_vm_ip=$(az network nic show -g $rg -n $spoke2_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv)
+spoke2_vm_ip=$(az network nic show -g $rg -n $spoke2_vnet_name --query ipConfigurations[0].privateIPAddress -o tsv | tr -d '\r')
 
 # jump vm in hub1
 echo -e "\e[1;36mDeploying $hub1_vnet_name-jmp VM...\e[0m"
 az network public-ip create -g $rg -n $hub1_vnet_name-jmp --allocation-method static --sku Basic -o none
 az network nic create -g $rg -n $hub1_vnet_name-jmp -l $location1 --public-ip-address $hub1_vnet_name-jmp --vnet-name $hub1_vnet_name --subnet $hub1_vm_subnet_name -o none
 az vm create -g $rg -n $hub1_vnet_name-jmp -l $location1 --image Ubuntu2404 --nics  $hub1_vnet_name-jmp --os-disk-name $hub1_vnet_name-jmp --size $vm_size --admin-username $admin_username --generate-ssh-keys -o none
-hub1_jmp_pip=$(az network public-ip show -g $rg -n $hub1_vnet_name-jmp --query ipAddress -o tsv) && echo $hub1_vnet_name-jmp: $hub1_jmp_pip
+hub1_jmp_pip=$(az network public-ip show -g $rg -n $hub1_vnet_name-jmp --query ipAddress -o tsv | tr -d '\r') && echo $hub1_vnet_name-jmp: $hub1_jmp_pip
 
 # waiting on hub1 vpn gw to finish deployment
-hub1_gw_id=$(az network vnet-gateway show -g $rg -n $hub1_vnet_name-gw --query id -o tsv)
+hub1_gw_id=$(az network vnet-gateway show -g $rg -n $hub1_vnet_name-gw --query id -o tsv | tr -d '\r')
 wait_until_finished $hub1_gw_id
 
 # Getting hub1 VPN GW details
 echo -e "\e[1;36mGetting $hub1_vnet_name-gw VPN Gateway details...\e[0m"
-hub1_gw_pubip=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0]' -o tsv) && echo $hub1_vnet_name-gw: $hub1_gw_pubip
+hub1_gw_pubip=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0]' -o tsv | tr -d '\r') && echo $hub1_vnet_name-gw: $hub1_gw_pubip
 
 # waiting on hub2 vpn gw to finish deployment
-hub2_gw_id=$(az network vnet-gateway show -g $rg -n $hub2_vnet_name-gw --query id -o tsv)
+hub2_gw_id=$(az network vnet-gateway show -g $rg -n $hub2_vnet_name-gw --query id -o tsv | tr -d '\r')
 wait_until_finished $hub2_gw_id
 
 # Getting hub2 VPN GW details
 echo -e "\e[1;36mGetting $hub2_vnet_name-gw VPN Gateway details...\e[0m"
-hub2_gw_pubip=$(az network vnet-gateway show -n $hub2_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0]' -o tsv) && echo $hub2_vnet_name-gw: $hub2_gw_pubip
+hub2_gw_pubip=$(az network vnet-gateway show -n $hub2_vnet_name-gw -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0]' -o tsv | tr -d '\r') && echo $hub2_vnet_name-gw: $hub2_gw_pubip
 
 # VNet Peering between hub1 and spoke1
 echo -e "\e[1;36mCreating VNet peerring between $hub1_vnet_name and $spoke1_vnet_name...\e[0m"
