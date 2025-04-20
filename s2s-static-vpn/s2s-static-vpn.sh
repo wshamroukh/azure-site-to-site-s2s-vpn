@@ -1,4 +1,4 @@
-rg=s2s
+rg=s2s-static
 location1=centralindia
 location2=centralindia
 
