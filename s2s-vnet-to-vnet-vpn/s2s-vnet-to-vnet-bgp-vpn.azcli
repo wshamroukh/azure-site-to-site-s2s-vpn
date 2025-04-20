@@ -73,8 +73,8 @@ az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_v
 
 # hub1 VPN GW
 echo -e "\e[1;36mDeploying $hub1_vnet_name-gw VPN Gateway...\e[0m"
-az network public-ip create -g $rg -n $hub1_vnet_name-gw-pubip -l $location1 --allocation-method Static -o none
-az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw --public-ip-addresses $hub1_vnet_name-gw-pubip --vnet $hub1_vnet_name --sku VpnGw1 --gateway-type Vpn --vpn-type RouteBased --asn $hub1_gw_asn --no-wait
+az network public-ip create -g $rg -n $hub1_vnet_name-gw -l $location1 --allocation-method Static -o none
+az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw --public-ip-addresses $hub1_vnet_name-gw --vnet $hub1_vnet_name --sku VpnGw1 --gateway-type Vpn --vpn-type RouteBased --asn $hub1_gw_asn --no-wait
 
 # hub2 vnet
 echo -e "\e[1;36mCreating $hub2_vnet_name VNet...\e[0m"
@@ -83,8 +83,8 @@ az network vnet subnet create -g $rg -n GatewaySubnet --address-prefixes $hub2_g
 
 # hub2 VPN GW
 echo -e "\e[1;36mDeploying $hub2_vnet_name-gw VPN Gateway...\e[0m"
-az network public-ip create -g $rg -n $hub2_vnet_name-gw-pubip -l $location1 --allocation-method Static -o none
-az network vnet-gateway create -g $rg -n $hub2_vnet_name-gw --public-ip-addresses $hub2_vnet_name-gw-pubip --vnet $hub2_vnet_name --sku VpnGw1 --gateway-type Vpn --vpn-type RouteBased --asn $hub2_gw_asn --no-wait
+az network public-ip create -g $rg -n $hub2_vnet_name-gw -l $location1 --allocation-method Static -o none
+az network vnet-gateway create -g $rg -n $hub2_vnet_name-gw --public-ip-addresses $hub2_vnet_name-gw --vnet $hub2_vnet_name --sku VpnGw1 --gateway-type Vpn --vpn-type RouteBased --asn $hub2_gw_asn --no-wait
 
 # spoke1 vnet
 echo -e "\e[1;36mCreating $spoke1_vnet_name VNet...\e[0m"
