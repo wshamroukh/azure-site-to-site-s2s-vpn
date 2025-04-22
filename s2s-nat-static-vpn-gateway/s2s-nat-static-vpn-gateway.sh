@@ -483,7 +483,7 @@ esac
 EOT
 
 sed -i "s,\\\$hub1_nat_address,${hub1_nat_address}," $ipsec_vti_file
-sed -i "s,\\\$onprem1_nat_address,${onprem2_nat_address}," $ipsec_vti_file
+sed -i "s,\\\$onprem1_nat_address,${onprem1_nat_address}," $ipsec_vti_file
 sed -i "/\$hub1_vnet_name-gw0/ s//$hub1_vnet_name-gw0/" $ipsec_vti_file
 sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 
