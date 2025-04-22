@@ -529,5 +529,8 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $hub
 echo -e "\e[1;36mChecking the connectivity from $onprem2_vnet_name-gw to $onprem2_vnet_name VM using the NAT'ed IP address ($onprem2_vm_nat_ip)...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $onprem1_vm_nat_ip -c 3"
 
+# you could run sudo tcpdump -i any icmp on the destination VM to see the packets coming in while you are trying to ping it
+# forth octect of the ip address always remains the same while NAT'ing
+
 #cleanup
 # az group delete -g $rg -y --no-wait
