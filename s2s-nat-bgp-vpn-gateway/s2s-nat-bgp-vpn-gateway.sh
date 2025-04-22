@@ -326,13 +326,13 @@ az network vnet subnet update -g $rg -n $spoke2_vm_subnet_name --vnet-name $spok
 
 echo -e "\e[1;36mCreating NAT rules on $hub1_vnet_name-gw VPN Gateway...\e[0m"
 # Egress NAT Rule from Azure to Branches
-az network vnet-gateway nat-rule add -g $rg --name $hub1_vnet_name-nat-rule --type Static --mode EgressSnat --internal-mappings $hub1_vnet_address --external-mappings $hub1_nat_address --gateway-name $hub1_vnet_name-gw -o none
+az network vnet-gateway nat-rule add -g $rg -n $hub1_vnet_name-nat-rule --type Static --mode EgressSnat --internal-mappings $hub1_vnet_address --external-mappings $hub1_nat_address --gateway-name $hub1_vnet_name-gw -o none
 
 # Ingress NAT Rule from onprem1 to Azure
-az network vnet-gateway nat-rule add -g $rg --name $onprem1_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem1_vnet_address --external-mappings $onprem1_nat_address --gateway-name $hub1_vnet_name-gw -o none
+az network vnet-gateway nat-rule add -g $rg -n $onprem1_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem1_vnet_address --external-mappings $onprem1_nat_address --gateway-name $hub1_vnet_name-gw -o none
 
 # Ingress NAT Rule from onprem2 to Azure
-az network vnet-gateway nat-rule add -g $rg --name $onprem2_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem2_vnet_address --external-mappings $onprem2_nat_address --gateway-name $hub1_vnet_name-gw -o none
+az network vnet-gateway nat-rule add -g $rg -n $onprem2_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem2_vnet_address --external-mappings $onprem2_nat_address --gateway-name $hub1_vnet_name-gw -o none
 
 # Enable Bgp Route Translation
 az network vnet-gateway update -n $hub1_vnet_name-gw -g $rg --set enableBgpRouteTranslationForNat=true -o none

@@ -223,15 +223,15 @@ hub1_gw_pubip1=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --que
 
 # Egress NAT Rule from Azure to Branches
 echo -e "\e[1;36mCreating Egress NAT rule on $hub1_vnet_name-gw VPN Gateway for $hub1_vnet_name VNet ($hub1_vnet_address-->$hub1_nat_address)...\e[0m"
-az network vnet-gateway nat-rule add -g $rg --name $hub1_vnet_name-nat-rule --type Static --mode EgressSnat --internal-mappings $hub1_vnet_address --external-mappings $hub1_nat_address --gateway-name $hub1_vnet_name-gw -o none
+az network vnet-gateway nat-rule add -g $rg -n $hub1_vnet_name-nat-rule --type Static --mode EgressSnat --internal-mappings $hub1_vnet_address --external-mappings $hub1_nat_address --gateway-name $hub1_vnet_name-gw -o none
 
 # Ingress NAT Rule from onprem1 to Azure
 echo -e "\e[1;36mCreating Ingress NAT rule on $hub1_vnet_name-gw VPN Gateway for $onprem1_vnet_name VNet ($onprem1_vnet_address-->$onprem1_nat_address)...\e[0m"
-az network vnet-gateway nat-rule add -g $rg --name $onprem1_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem1_vnet_address --external-mappings $onprem1_nat_address --gateway-name $hub1_vnet_name-gw -o none
+az network vnet-gateway nat-rule add -g $rg -n $onprem1_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem1_vnet_address --external-mappings $onprem1_nat_address --gateway-name $hub1_vnet_name-gw -o none
 
 # Ingress NAT Rule from onprem2 to Azure
 echo -e "\e[1;36mCreating Ingress NAT rule on $hub1_vnet_name-gw VPN Gateway for $onprem2_vnet_name VNet ($onprem2_vnet_address-->$onprem2_nat_address)...\e[0m"
-az network vnet-gateway nat-rule add -g $rg --name $onprem2_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem2_vnet_address --external-mappings $onprem2_nat_address --gateway-name $hub1_vnet_name-gw -o none
+az network vnet-gateway nat-rule add -g $rg -n $onprem2_vnet_name-nat-rule --type Static --mode IngressSnat --internal-mappings $onprem2_vnet_address --external-mappings $onprem2_nat_address --gateway-name $hub1_vnet_name-gw -o none
 
 # Get NAT rules details
 echo -e "\e[1;36mGetting NAT rules details on $hub1_vnet_name-gw VPN Gateway...\e[0m"

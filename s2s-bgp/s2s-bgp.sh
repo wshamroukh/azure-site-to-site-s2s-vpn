@@ -391,7 +391,7 @@ sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 # frr.conf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 10.2
+frr version 10.3
 frr defaults traditional
 hostname $onprem1_vnet_name-gw
 log syslog informational
@@ -569,7 +569,7 @@ sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 # frr.conf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 10.2
+frr version 10.3
 frr defaults traditional
 hostname $onprem2_vnet_name-gw
 log syslog informational

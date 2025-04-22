@@ -402,7 +402,7 @@ sed -i "/\$onprem1_gw_nic_default_gw/ s//$onprem1_gw_nic_default_gw/" $ipsec_xfr
 # frr.conf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 10.2
+frr version 10.3
 frr defaults traditional
 hostname $onprem1_vnet_name-gw
 log syslog informational
@@ -583,7 +583,7 @@ sed -i "/\$onprem2_gw_nic_default_gw/ s//$onprem2_gw_nic_default_gw/" $ipsec_xfr
 # frr.conf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 10.2
+frr version 10.3
 frr defaults traditional
 hostname $onprem2_vnet_name-gw
 log syslog informational
