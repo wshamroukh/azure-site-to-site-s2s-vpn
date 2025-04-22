@@ -515,6 +515,7 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipse
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo service frr restart"
 echo -e "\e[1;36mChecking the status of S2S VPN between $onprem1_vnet_name-gw and $hub1_vnet_name-gw VPN Gateways...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec statusall"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec stop && sudo ipsec start && sudo ipsec status && ip a"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ip a"
 

@@ -702,6 +702,7 @@ rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
 #############################################################
 echo -e "\e[1;36mChecking BGP routing on $onprem1_vnet_name-gw gateway VM...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec statusall"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show bgp summary'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show bgp all'"
 echo -e "\e[1;36mChecking received routes on $onprem1_vnet_name-gw from $hub1_vnet_name-gw...\e[0m"
@@ -719,6 +720,7 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3
 
 echo -e "\e[1;36mChecking BGP routing on $onprem2_vnet_name-gw gateway vm...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec statusall"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show bgp summary'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show bgp all'"
 echo -e "\e[1;36mChecking received routes on $onprem2_vnet_name-gw from $hub1_vnet_name-gw...\e[0m"

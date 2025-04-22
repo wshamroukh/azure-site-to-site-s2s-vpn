@@ -351,6 +351,7 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo mv /
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo chmod +x /etc/strongswan.d/ipsec-vti.sh"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec restart"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec statusall"
 
 # clean up config files
 rm $psk_file $ipsec_file $cloudinit_file
@@ -468,8 +469,10 @@ rm $psk_file $ipsec_file $ipsec_vti_file
 #############
 echo -e "\e[1;36mChecking IPSec VPN tunnel status on $onprem1_vnet_name-gw...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec statusall"
 echo -e "\e[1;36mChecking IPSec VPN tunnel status on $onprem2_vnet_name-gw...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec statusall"
 
 echo -e "\e[1;36mChecking the static route on $onprem1_vnet_name-gw to the NAT'ed IP addresses of both $hub1_vnet_name and $onprem2_vnet_name VNets...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ip route"
