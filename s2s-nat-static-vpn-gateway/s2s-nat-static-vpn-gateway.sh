@@ -446,28 +446,46 @@ tee $ipsec_vti_file > /dev/null <<'EOT'
 #
 # /etc/strongswan.d/ipsec-vti.sh
 #
-set -o nounset
-set -o errexit
+IP=$(which ip)
+IPTABLES=$(which iptables)
+PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
+PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
+case "$PLUTO_CONNECTION" in
+   $hub1_vnet_name-gw0)
+    VTI_INTERFACE=vti0
+    O_VTI_IF=vti1
+    MTRC=100
+    ;;
+   $hub1_vnet_name-gw1)
+    VTI_INTERFACE=vti1
+    O_VTI_IF=vti0
+    MTRC=200
+    ;;
+esac
 echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
-VTI_IF="vti${PLUTO_UNIQUEID}"
-
 case "${PLUTO_VERB}" in
     up-client)
-        ip tunnel add "${VTI_IF}" local "${PLUTO_ME}" remote "${PLUTO_PEER}" mode vti \
-            okey "${PLUTO_MARK_OUT%%/*}" ikey "${PLUTO_MARK_IN%%/*}"
-        ip link set "${VTI_IF}" up
-        ip route add $hub1_nat_address dev "${VTI_IF}"
-        ip route add $onprem1_nat_address dev "${VTI_IF}"
-        sysctl -w "net.ipv4.conf.${VTI_IF}.disable_policy=1"
+        $IP link add ${VTI_INTERFACE} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}
+        ip link set "${VTI_INTERFACE}" up
+        ip route add $hub1_nat_address nexthop dev "${VTI_INTERFACE}" nexthop dev "${O_VTI_IF}"
+        ip route add $onprem1_nat_address nexthop dev "${VTI_INTERFACE}" nexthop dev "${O_VTI_IF}"
+        sysctl -w "net.ipv4.conf.${VTI_INTERFACE}.disable_policy=1"
         ;;
     down-client)
-        ip tunnel del "${VTI_IF}"
+        $IP link del "${VTI_INTERFACE}"
+        ip tunnel del "${VTI_INTERFACE}"
+        ip route delete $hub1_nat_address
+        ip route delete $onprem1_nat_address
+        $IPTABLES -t mangle -D FORWARD -o ${VTI_INTERFACE} -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+        $IPTABLES -t mangle -D INPUT -p esp -s ${PLUTO_PEER} -d ${PLUTO_ME} -j MARK --set-xmark ${PLUTO_MARK_IN}
         ;;
 esac
 EOT
 
 sed -i "s,\\\$hub1_nat_address,${hub1_nat_address}," $ipsec_vti_file
-sed -i "s,\\\$onprem1_nat_address,${onprem1_nat_address}," $ipsec_vti_file
+sed -i "s,\\\$onprem1_nat_address,${onprem2_nat_address}," $ipsec_vti_file
+sed -i "/\$hub1_vnet_name-gw0/ s//$hub1_vnet_name-gw0/" $ipsec_vti_file
+sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 
 
 ##### copy files to onprem gw

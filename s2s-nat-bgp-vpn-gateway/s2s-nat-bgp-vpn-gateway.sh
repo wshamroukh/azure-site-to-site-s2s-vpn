@@ -424,7 +424,6 @@ IP=$(which ip)
 IPTABLES=$(which iptables)
 PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
 PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
-echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "$PLUTO_CONNECTION" in
   $hub1_vnet_name-gw0)
     VTI_INTERFACE=vti0
@@ -437,6 +436,7 @@ case "$PLUTO_CONNECTION" in
     VTI_REMOTEADDR=$hub1_gw_nat_bgp_ip1/32
     ;;
 esac
+echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "${PLUTO_VERB}" in
     up-client)
         $IP link add ${VTI_INTERFACE} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}
@@ -598,7 +598,6 @@ IP=$(which ip)
 IPTABLES=$(which iptables)
 PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
 PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
-echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "$PLUTO_CONNECTION" in
   $hub1_vnet_name-gw0)
     VTI_INTERFACE=vti0
@@ -611,6 +610,7 @@ case "$PLUTO_CONNECTION" in
     VTI_REMOTEADDR=$hub1_gw_nat_bgp_ip1/32
     ;;
 esac
+echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "${PLUTO_VERB}" in
     up-client)
         $IP link add ${VTI_INTERFACE} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}
