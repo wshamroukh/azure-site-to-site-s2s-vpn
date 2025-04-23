@@ -1,3 +1,4 @@
+# Static Routing with Static NAT - Static NAT: Static rules define a fixed address mapping relationship. For a given IP address, it will be mapped to the same address from the target pool. The mappings for static rules are stateless because the mapping is fixed.
 rg=s2s-static-nat
 location1=centralindia
 location2=centralindia
