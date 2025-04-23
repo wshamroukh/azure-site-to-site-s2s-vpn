@@ -1,4 +1,5 @@
 # Static Routing with Static NAT - Static NAT: Static rules define a fixed address mapping relationship. For a given IP address, it will be mapped to the same address from the target pool. The mappings for static rules are stateless because the mapping is fixed.
+# GOLDEN RULE: If the target address pool size is the same as the original address pool, use static NAT rule to define a 1:1 mapping in a sequential order. If the target address pool is smaller than the original address pool, use dynamic NAT rule to accommodate the differences.
 rg=s2s-static-nat
 location1=centralindia
 location2=centralindia
