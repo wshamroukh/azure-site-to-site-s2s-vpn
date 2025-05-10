@@ -54,7 +54,7 @@ myip=$(curl -s4 https://ifconfig.co/)
 
 vm_size=Standard_B2ats_v2
 
-opnsense_init_file=~/opnsense_init.sh
+opnsense_init_file=opnsense_init.sh
 cat <<EOF > $opnsense_init_file
 #!/usr/local/bin/bash
 echo $admin_password | sudo -S pkg update
@@ -138,7 +138,7 @@ function first_ip(){
 }
 
 # resource groups
-echo -e "\e[1;36mCreating $rg resource group ...\e[0m"
+echo -e "\e[1;36mCreating $rg resource group...\e[0m"
 az group create -l $location1 -n $rg -o none
 
 # hub1
@@ -171,23 +171,10 @@ az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --publ
 echo -e "\e[1;36mCreating $hub1_vnet_name-fw VM...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-fw" -l $location1 --allocation-method Static --sku Basic -o none
 az network nic create -g $rg -n "$hub1_vnet_name-fw-wan" --subnet $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.2.250 --public-ip-address "$hub1_vnet_name-fw" -o none
-az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2als_v2 --admin-username $admin_username --generate-ssh-keys 
+az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2als_v2 --admin-username $admin_username --generate-ssh-keys --no-wait -o none
 # hub1 fw opnsense vm details:
 hub1_fw_public_ip=$(az network public-ip show -g $rg -n "$hub1_vnet_name-fw" --query 'ipAddress' -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw public ip: $hub1_fw_public_ip
 hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $onprem1_vnet_name-gw wan private IP: $hub1_fw_wan_private_ip
-
-# opnsense vm boot diagnostics
-echo -e "\e[1;36mEnabling VM boot diagnostics for $hub1_vnet_name-fw...\e[0m"
-az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
-
-# configuring opnsense
-echo -e "\e[1;36mConfiguring $hub1_vnet_name-fw...\e[0m"
-config_file=~/config.xml
-curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml
-echo -e "\e[1;36mCopying configuration files to $vm_name and installing opnsense firewall...\e[0m"
-scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
-ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
-rm $opnsense_init_file $config_file
 
 # onprem1
 echo -e "\e[1;36mCreating $onprem1_vnet_name VNet...\e[0m"
@@ -330,6 +317,19 @@ az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-pre
 az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$onprem1_vnet_name --address-prefix $onprem1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network vnet subnet update -g $rg -n $onprem2_vm_subnet_name --vnet-name $onprem2_vnet_name --route-table $onprem2_vnet_name -o none
+
+# opnsense vm boot diagnostics
+echo -e "\e[1;36mEnabling VM boot diagnostics for $hub1_vnet_name-fw...\e[0m"
+az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
+
+# configuring opnsense
+echo -e "\e[1;36mConfiguring $hub1_vnet_name-fw...\e[0m"
+config_file=~/config.xml
+curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml
+echo -e "\e[1;36mCopying configuration files to $hub1_vnet_name-fw and installing opnsense firewall...\e[0m"
+scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
+ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
+rm $opnsense_init_file $config_file
 
 # waiting on hub1 gw to finish deployment
 hub1_gw_id=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --query 'id' -o tsv | tr -d '\r')

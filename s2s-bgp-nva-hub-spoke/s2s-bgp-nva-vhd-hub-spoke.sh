@@ -107,7 +107,7 @@ function first_ip(){
 }
 
 # resource groups
-echo -e "\e[1;36mCreating $rg resource group ...\e[0m"
+echo -e "\e[1;36mCreating $rg resource group...\e[0m"
 az group create -l $location1 -n $rg -o none
 
 # hub1
