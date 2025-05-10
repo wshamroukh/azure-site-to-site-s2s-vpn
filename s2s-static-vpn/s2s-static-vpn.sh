@@ -343,26 +343,26 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipse
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec statusall"
 
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw Gateway VM to $hub1_vnet_name VM...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $hub1_vm_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip"
 
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw Gateway VM to $spoke1_vnet_name VM...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $spoke1_vm_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $spoke1_vm_ip"
 
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw Gateway VM to $onprem2_vnet_name VM...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping $onprem2_vm_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $onprem2_vm_ip"
 
 echo -e "\e[1;36mChecking S2S VPN Tunnel on $onprem2_vnet_name-gw...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec statusall"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw Gateway VM to $hub1_vnet_name VM...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $hub1_vm_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw Gateway VM to $spoke1_vnet_name VM...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $spoke1_vm_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $spoke1_vm_ip"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw Gateway VM to $onprem1_vnet_name VM...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping $onprem1_vm_ip -c 3"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $onprem1_vm_ip"
 
 #cleanup
 # az group delete -g $rg -y --no-wait
