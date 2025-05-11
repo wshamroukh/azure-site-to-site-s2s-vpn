@@ -166,7 +166,7 @@ az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --publ
 echo -e "\e[1;36mCreating $hub1_vnet_name-fw VM...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-fw" -l $location1 --allocation-method Static --sku Basic -o none
 az network nic create -g $rg -n "$hub1_vnet_name-fw-wan" --subnet $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.2.250 --public-ip-address "$hub1_vnet_name-fw" -o none
-az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2als_v2 --admin-username $admin_username --generate-ssh-keys
+az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2als_v2 --admin-username $admin_username --generate-ssh-keys --no-wait
 # hub1 fw opnsense vm details:
 hub1_fw_public_ip=$(az network public-ip show -g $rg -n "$hub1_vnet_name-fw" --query 'ipAddress' -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw public ip: $hub1_fw_public_ip
 hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $onprem1_vnet_name-gw wan private IP: $hub1_fw_wan_private_ip
