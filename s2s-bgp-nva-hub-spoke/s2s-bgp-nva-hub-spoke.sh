@@ -78,6 +78,7 @@ git -c http.sslVerify=false clone https://github.com/Azure/WALinuxAgent.git
 cd ~/WALinuxAgent/
 git checkout v2.13.1.1
 sudo python setup.py install --register-service --force
+sudo reboot
 EOF
 
 onprem_gw_cloudinit_file=onprem_gw_cloudinit.txt
