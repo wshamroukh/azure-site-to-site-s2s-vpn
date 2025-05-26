@@ -149,7 +149,7 @@ az network vnet subnet update -g $rg -n $onprem1_vm_subnet_name --vnet-name $onp
 # onprem1 gw nsg
 echo -e "\e[1;36mCreating $onprem1_vnet_name-gw NSG...\e[0m"
 az network nsg create -g $rg -n $onprem1_vnet_name-gw -l $location1 -o none
-az network nsg rule create -g $rg -n AllowSSHin --nsg-name $onprem1_vnet_name-gw --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes '*' --source-port-ranges '*' -o none
+az network nsg rule create -g $rg -n AllowSSHin --nsg-name $onprem1_vnet_name-gw --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes $myip --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowIKE --nsg-name $onprem1_vnet_name-gw --priority 1010 --access Allow --description AllowIKE --protocol Udp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 4500 --source-address-prefixes '*' --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowIPSec --nsg-name $onprem1_vnet_name-gw --priority 1020 --access Allow --description AllowIPSec --protocol Udp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 500 --source-address-prefixes '*' --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowICMPin --nsg-name $onprem1_vnet_name-gw --priority 1030 --access Allow --description AllowICMP --protocol Icmp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges '*' --source-address-prefixes '*' --source-port-ranges '*' -o none
@@ -167,7 +167,7 @@ az network vnet subnet update -g $rg -n $onprem2_vm_subnet_name --vnet-name $onp
 # onprem2 gw nsg
 echo -e "\e[1;36mCreating $onprem2_vnet_name-gw NSG...\e[0m"
 az network nsg create -g $rg -n $onprem2_vnet_name-gw -l $location2 -o none
-az network nsg rule create -g $rg -n AllowSSHin --nsg-name $onprem2_vnet_name-gw --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes '*' --source-port-ranges '*' -o none
+az network nsg rule create -g $rg -n AllowSSHin --nsg-name $onprem2_vnet_name-gw --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes $myip --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowIKE --nsg-name $onprem2_vnet_name-gw --priority 1010 --access Allow --description AllowIKE --protocol Udp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 4500 --source-address-prefixes '*' --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowIPSec --nsg-name $onprem2_vnet_name-gw --priority 1020 --access Allow --description AllowIPSec --protocol Udp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 500 --source-address-prefixes '*' --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowICMPin --nsg-name $onprem2_vnet_name-gw --priority 1030 --access Allow --description AllowICMP --protocol Icmp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges '*' --source-address-prefixes '*' --source-port-ranges '*' -o none
