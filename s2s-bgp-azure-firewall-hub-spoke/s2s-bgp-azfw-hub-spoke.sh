@@ -718,7 +718,6 @@ az network nic show-effective-route-table -g $rg -n $spoke2_vnet_name -o table
 ### Sending all traffic to the hub1 firewall #
 ##############################################
 
-
 # hub1 GatewaySubnet route table
 echo -e "\e[1;36mDeploying $hub1_vnet_name-gw GatewaySubnet route table and attaching it to GatewaySubnet subnet...\e[0m"
 az network route-table create -g $rg -n $hub1_vnet_name-gw -l $location1 --disable-bgp-route-propagation false -o none
@@ -752,16 +751,12 @@ az network vnet subnet update -g $rg -n $spoke2_vm_subnet_name --vnet-name $spok
 # Diagnosis after directing the traffic to AZ Firewall #
 ########################################################
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw gateway vm to the rest of network topology after routing through firewall...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $spoke1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $spoke2_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $onprem2_vm_ip"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem2_vm_ip"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem2_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw gateway vm to the rest of network topology after routing through firewall...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $spoke1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $spoke2_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $onprem1_vm_ip"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip'"
 
 #cleanup
 # az group delete -g $rg -y --no-wait
