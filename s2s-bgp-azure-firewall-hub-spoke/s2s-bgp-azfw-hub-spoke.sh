@@ -281,6 +281,16 @@ az network firewall create -g $rg -n $hub1_vnet_name-fw -l $location1 --sku AZFW
 az network firewall ip-config create -g $rg -n $hub1_vnet_name-fw-config --firewall-name $hub1_vnet_name-fw --public-ip-address $hub1_vnet_name-fw --vnet-name $hub1_vnet_name -o none
 az network firewall update -g $rg -n $hub1_vnet_name-fw -o none
 hub1_fw_private_ip=$(az network firewall show -g $rg -n $hub1_vnet_name-fw --query ipConfigurations[0].privateIPAddress -o tsv | tr -d '\r') && echo "$hub1_vnet_name-fw private IP address: $hub1_fw_private_ip"
+azfwid=$(az network firewall show -g $rg -n $hub1_vnet_name-fw --query id -o tsv | tr -d '\r')
+
+# Log analytics Workspace
+echo -e "\e[1;36mCreating Log Analytics Workspace....\e[0m"
+law_name=$hub1_vnet_name-law
+az monitor log-analytics workspace create -g $rg -n $law_name -o none
+lawid=$(az monitor log-analytics workspace show -g $rg -n $law_name --query id -o tsv | tr -d '\r')
+# reference https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/azfwapplicationrule
+echo -e "\e[1;36mEnabling logging on $hub1_vnet_name-fw....\e[0m"
+az monitor diagnostic-settings create -n azfwlogs -g $rg --resource $azfwid --workspace $lawid --export-to-resource-specific true --logs '[{"category":"AZFWApplicationRule","Enabled":true}, {"category":"AZFWNetworkRule","Enabled":true}, {"category":"AZFWApplicationRuleAggregation","Enabled":true}, {"category":"AZFWDnsQuery","Enabled":true}, {"category":"AZFWFlowTrace","Enabled":true} , {"category":"AZFWIdpsSignature","Enabled":true}, {"category":"AZFWNatRule","Enabled":true}, {"category":"AZFWFatFlow","Enabled":true}, {"category":"AZFWNatRuleAggregation","Enabled":true}, {"category":"AZFWNetworkRuleAggregation","Enabled":true}, {"category":"AZFWThreatIntel","Enabled":true}]' -o none
 
 # waiting on hub1 vpn gw to finish deployment
 hub1_gw_id=$(az network vnet-gateway show -g $rg -n $hub1_vnet_name-gw --query id -o tsv | tr -d '\r')
