@@ -92,8 +92,6 @@ runcmd:
   - sudo sed -i "/bgpd=no/ s//bgpd=yes/" /etc/frr/daemons
   - sudo cat /etc/frr/daemons
   - sudo service frr restart
-  - touch /etc/strongswan.d/ipsec-vti.sh
-  - chmod +x /etc/strongswan.d/ipsec-vti.sh
   - cp /etc/ipsec.conf /etc/ipsec.conf.bak
   - cp /etc/ipsec.secrets /etc/ipsec.secrets.bak
   - echo "net.ipv4.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
