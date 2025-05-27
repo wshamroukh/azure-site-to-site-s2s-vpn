@@ -511,7 +511,7 @@ EOF
 # Copy files to site1 gw and restart ipsec daemon
 echo -e "\e[1;36mConfiguring S2S VPN connection on $onprem1_vnet_name-gw VM....\e[0m"
 scp -o StrictHostKeyChecking=no $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file $onprem1_gw_pubip:/home/$admin_username
-scp -o StrictHostKeyChecking=no ~/.ssh/* $onprem1_gw_pubip:/home/$admin_username/.ssh/
+scp -o StrictHostKeyChecking=no ~/.ssh/id_rsa $onprem1_gw_pubip:/home/$admin_username/.ssh/
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo mv /home/$admin_username/frr.conf /etc/frr/frr.conf"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo mv /home/$admin_username/ipsec.* /etc/"
@@ -679,7 +679,7 @@ EOF
 # Copy files to site1 gw and restart ipsec daemon
 echo -e "\e[1;36mConfiguring S2S VPN connection on $onprem2_vnet_name-gw....\e[0m"
 scp -o StrictHostKeyChecking=no $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file $onprem2_gw_pubip:/home/$admin_username
-scp -o StrictHostKeyChecking=no ~/.ssh/* $onprem2_gw_pubip:/home/$admin_username/.ssh/
+scp -o StrictHostKeyChecking=no ~/.ssh/id_rsa $onprem2_gw_pubip:/home/$admin_username/.ssh/
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /home/$admin_username/frr.conf /etc/frr/frr.conf"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /home/$admin_username/ipsec.* /etc/"
