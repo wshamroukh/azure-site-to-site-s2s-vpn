@@ -329,14 +329,15 @@ case "$PLUTO_CONNECTION" in
     VTI_INTERFACE=vti0
     O_VTI_IF=vti1
     MTRC=100
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
    $hub1_vnet_name-gw1)
     VTI_INTERFACE=vti1
     O_VTI_IF=vti0
     MTRC=200
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
 esac
-echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "${PLUTO_VERB}" in
     up-client)
         $IP link add ${VTI_INTERFACE} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}
@@ -456,14 +457,15 @@ case "$PLUTO_CONNECTION" in
     VTI_INTERFACE=vti0
     O_VTI_IF=vti1
     MTRC=100
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
    $hub1_vnet_name-gw1)
     VTI_INTERFACE=vti1
     O_VTI_IF=vti0
     MTRC=200
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
 esac
-echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "${PLUTO_VERB}" in
     up-client)
         $IP link add ${VTI_INTERFACE} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}

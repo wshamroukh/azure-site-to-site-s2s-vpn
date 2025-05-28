@@ -430,14 +430,15 @@ case "$PLUTO_CONNECTION" in
     VTI_INTERFACE=vti0
     VTI_LOCALADDR=$onprem1_gw_vti0/32
     VTI_REMOTEADDR=$hub1_gw_nat_bgp_ip0/32
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
   $hub1_vnet_name-gw1)
     VTI_INTERFACE=vti1
     VTI_LOCALADDR=$onprem1_gw_vti1/32
     VTI_REMOTEADDR=$hub1_gw_nat_bgp_ip1/32
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
 esac
-echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "${PLUTO_VERB}" in
     up-client)
         $IP link add ${VTI_INTERFACE} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}
@@ -604,14 +605,15 @@ case "$PLUTO_CONNECTION" in
     VTI_INTERFACE=vti0
     VTI_LOCALADDR=$onprem2_gw_vti0/32
     VTI_REMOTEADDR=$hub1_gw_nat_bgp_ip0/32
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
   $hub1_vnet_name-gw1)
     VTI_INTERFACE=vti1
     VTI_LOCALADDR=$onprem2_gw_vti1/32
     VTI_REMOTEADDR=$hub1_gw_nat_bgp_ip1/32
+    echo "`date` - ${PLUTO_VERB} - ${PLUTO_CONNECTION} - $VTI_INTERFACE" >> /tmp/vtitrace.log
     ;;
 esac
-echo "`date` ${PLUTO_VERB} $VTI_INTERFACE" >> /tmp/vtitrace.log
 case "${PLUTO_VERB}" in
     up-client)
         $IP link add ${VTI_INTERFACE} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}
