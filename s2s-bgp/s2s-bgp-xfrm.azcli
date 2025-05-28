@@ -48,8 +48,7 @@ runcmd:
   - sudo apt install -y strongswan strongswan-swanctl inetutils-traceroute net-tools
   - sudo sed -i "/bgpd=no/ s//bgpd=yes/" /etc/frr/daemons
   - sudo service frr restart
-  - touch /etc/strongswan.d/ipsec-xfrm.sh
-  - chmod +x /etc/strongswan.d/ipsec-xfrm.sh
+  - sudo systemctl enable ipsec
   - cp /etc/ipsec.conf /etc/ipsec.conf.bak
   - cp /etc/ipsec.secrets /etc/ipsec.secrets.bak
   - echo "net.ipv4.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
