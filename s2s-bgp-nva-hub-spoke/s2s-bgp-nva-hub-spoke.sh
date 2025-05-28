@@ -374,11 +374,11 @@ conn %default
          # Authentication Method : Pre-Shared Key
          leftauth=psk
          rightauth=psk
-         ike=aes256-sha1-modp1024!
+         ike=aes256-sha256-modp2048
          ikelifetime=28800s
          # Phase 1 Negotiation Mode : main
          aggressive=no
-         esp=aes256-sha1!
+         esp=aes256-sha256
          lifetime=3600s
          keylife=3600s
          type=tunnel
@@ -543,11 +543,11 @@ conn %default
          # Authentication Method : Pre-Shared Key
          leftauth=psk
          rightauth=psk
-         ike=aes256-sha1-modp1024!
+         ike=aes256-sha256-modp2048
          ikelifetime=28800s
          # Phase 1 Negotiation Mode : main
          aggressive=no
-         esp=aes256-sha1!
+         esp=aes256-sha256
          lifetime=3600s
          keylife=3600s
          type=tunnel
