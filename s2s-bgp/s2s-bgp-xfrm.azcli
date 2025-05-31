@@ -271,7 +271,7 @@ connections {
         local_addrs  = $onprem1_gw_private_ip
         remote_addrs = $hub1_gw_pubip0
         version = 2
-        proposals = aes256-sha256-modp2048,aes192-sha256-modp3072,default
+        proposals = aes256-sha1-modp1024,aes192-sha256-modp3072,default
         keyingtries = 0
         encap = yes
         local {
@@ -301,7 +301,7 @@ connections {
         local_addrs  = $onprem1_gw_private_ip
         remote_addrs = $hub1_gw_pubip1
         version = 2
-        proposals = aes256-sha256-modp2048,aes192-sha256-modp3072,default
+        proposals = aes256-sha1-modp1024,aes192-sha256-modp3072,default
         keyingtries = 0
         encap = yes
         local {
@@ -454,7 +454,7 @@ connections {
         local_addrs  = $onprem2_gw_private_ip
         remote_addrs = $hub1_gw_pubip0
         version = 2
-        proposals = aes256-sha256-modp2048,aes192-sha256-modp3072,default
+        proposals = aes256-sha1-modp1024,aes192-sha256-modp3072,default
         keyingtries = 0
         encap = yes
         local {
@@ -484,7 +484,7 @@ connections {
         local_addrs  = $onprem2_gw_private_ip
         remote_addrs = $hub1_gw_pubip1
         version = 2
-        proposals = aes256-sha256-modp2048,aes192-sha256-modp3072,default
+        proposals = aes256-sha1-modp1024,aes192-sha256-modp3072,default
         keyingtries = 0
         encap = yes
         local {

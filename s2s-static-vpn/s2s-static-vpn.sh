@@ -252,7 +252,7 @@ ipsec_file=~/ipsec.conf
 cat <<EOF > $ipsec_file
 conn $hub1_vnet_name-gw
          dpdaction=restart
-         ike=aes256-sha256-modp2048
+         ike=aes256-sha1-modp1024
          esp=aes256-sha1
          keyexchange=ikev2
          ikelifetime=28800s
@@ -301,7 +301,7 @@ ipsec_file=~/ipsec.conf
 cat <<EOF > $ipsec_file
 conn $hub1_vnet_name-gw
          dpdaction=restart
-         ike=aes256-sha256-modp2048
+         ike=aes256-sha1-modp1024
          esp=aes256-sha1
          keyexchange=ikev2
          ikelifetime=28800s
