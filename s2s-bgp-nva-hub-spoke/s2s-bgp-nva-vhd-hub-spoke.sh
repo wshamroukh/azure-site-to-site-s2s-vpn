@@ -45,8 +45,7 @@ onprem2_gw_asn=65522
 onprem2_gw_vti0=172.22.0.250
 onprem2_gw_vti1=172.22.0.251
 
-default0=0.0.0.0/1
-default1=128.0.0.0/1
+default=0.0.0.0/0
 psk='secret12345'
 admin_username=$(whoami)
 admin_password='Test#123#123'
@@ -118,7 +117,7 @@ az network vnet subnet create -g $rg -n $hub1_fw_subnet_name --address-prefixes 
 # hub1 vm nsg
 echo -e "\e[1;36mCreating $hub1_vnet_name-vm NSG...\e[0m"
 az network nsg create -g $rg -n $hub1_vnet_name-vm -l $location1 -o none
-az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-vm --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes $myip --source-port-ranges '*' -o none
+az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-vm --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes '*' --source-port-ranges '*' -o none
 az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --nsg $hub1_vnet_name-vm -o none
 
 # hub1 fw nsg
@@ -127,6 +126,7 @@ az network nsg create -g $rg -n $hub1_vnet_name-fw-nsg -l $location1 -o none
 az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-fw-nsg --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes $myip --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowHTTP --nsg-name $hub1_vnet_name-fw-nsg --priority 1010 --access Allow --description AllowHTTP --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 80 --source-address-prefixes $myip --source-port-ranges '*' -o none
 az network nsg rule create -g $rg -n AllowHTTPS --nsg-name $hub1_vnet_name-fw-nsg --priority 1020 --access Allow --description AllowHTTPS --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 443 --source-address-prefixes $myip --source-port-ranges '*' -o none
+az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-fw-nsg --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Outbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes '*' --source-port-ranges '*' -o none
 az network vnet subnet update -g $rg -n $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --nsg $hub1_vnet_name-fw-nsg -o none
 
 # vpn gateway
@@ -138,21 +138,31 @@ az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --publ
 # hub1 fw opnsense vm
 # create a managed disk from a vhd
 echo -e "\e[1;36mCreating $hub1_vnet_name-fw managed disk from a vhd...\e[0m"
-az disk create -g $rg -n "$hub1_vnet_name-fw" --sku $storageType --location $location1 --size-gb 30 --source $vhdUri --os-type Linux
+az disk create -g $rg -n "$hub1_vnet_name-fw" --sku $storageType --location $location1 --size-gb 30 --source $vhdUri --os-type Linux -o none
 #Get the resource Id of the managed disk
 diskId=$(az disk show -n $hub1_vnet_name-fw -g $rg --query [id] -o tsv | tr -d '\r')
 
 echo -e "\e[1;36mCreating $hub1_vnet_name-fw VM...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-fw" -l $location1 --allocation-method Static --sku Basic -o none
+az network nic create -g $rg -n "$hub1_vnet_name-fw-lan" --subnet $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.1.250 -o none
 az network nic create -g $rg -n "$hub1_vnet_name-fw-wan" --subnet $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.2.250 --public-ip-address "$hub1_vnet_name-fw" -o none
-az vm create -g $rg -n $hub1_vnet_name-fw --nics "$hub1_vnet_name-fw-wan" --size Standard_B2als_v2 --attach-os-disk $diskId --os-type linux -o none
+az vm create -g $rg -n $hub1_vnet_name-fw --nics "$hub1_vnet_name-fw-wan" "$hub1_vnet_name-fw-lan" --size Standard_B2als_v2 --attach-os-disk $diskId --os-type linux -o none
 # hub1 fw opnsense vm details:
 hub1_fw_public_ip=$(az network public-ip show -g $rg -n "$hub1_vnet_name-fw" --query 'ipAddress' -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw public ip: $hub1_fw_public_ip
+hub1_fw_lan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-lan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw lan private IP: $hub1_fw_lan_private_ip
 hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $onprem1_vnet_name-gw wan private IP: $hub1_fw_wan_private_ip
 
 # opnsense vm boot diagnostics
 echo -e "\e[1;36mEnabling VM boot diagnostics for $hub1_vnet_name-fw...\e[0m"
 az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
+
+# configuring opnsense
+echo -e "\e[1;36mCopying config file to $hub1_vnet_name-fw...\e[0m"
+config_file=~/config.xml
+curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/new-config.xml
+scp -o StrictHostKeyChecking=no $config_file root@$hub1_fw_public_ip:/root/
+ssh -o StrictHostKeyChecking=no root@$hub1_fw_public_ip "cp /root/config.xml /config/config.xml && reboot"
+rm $config_file
 
 # onprem1
 echo -e "\e[1;36mCreating $onprem1_vnet_name VNet...\e[0m"
@@ -280,7 +290,7 @@ onprem2_vm_ip=$(az network nic show -g $rg -n $onprem2_vnet_name --query ipConfi
 
 # onprem1 route table
 echo -e "\e[1;36mCreating $onprem1_vnet_name route table...\e[0m"
-az network route-table create -g $rg -n $onprem1_vnet_name -l $location1 -o none
+az network route-table create -g $rg -n $onprem1_vnet_name --disable-bgp-route-propagation true -l $location1 -o none
 az network route-table route create -g $rg -n to-$hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
@@ -289,7 +299,7 @@ az network vnet subnet update -g $rg --vnet-name $onprem1_vnet_name -n $onprem1_
 
 # onprem2 route table
 echo -e "\e[1;36mCreating $onprem2_vnet_name route table...\e[0m"
-az network route-table create -g $rg -n $onprem2_vnet_name -l $location2 -o none
+az network route-table create -g $rg -n $onprem2_vnet_name --disable-bgp-route-propagation true -l $location2 -o none
 az network route-table route create -g $rg -n to-$hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
@@ -725,6 +735,8 @@ az network nic show-effective-route-table -g $rg -n $spoke2_vnet_name -o table
 echo -e "\e[1;36mCreating $hub1_vnet_name-gw route table....\e[0m"
 az network route-table create -g $rg -n $hub1_vnet_name-gw -l $location1 --disable-bgp-route-propagation false -o none
 az network route-table route create -g $rg -n $hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n $onprem1_vnet_name --address-prefix $onprem1_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n $onprem2_vnet_name --address-prefix $onprem2_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
 az network route-table route create -g $rg -n $spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
 az network route-table route create -g $rg -n $spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
 az network vnet subnet update -g $rg -n GatewaySubnet --vnet-name $hub1_vnet_name --route-table $hub1_vnet_name-gw -o none
@@ -732,22 +744,19 @@ az network vnet subnet update -g $rg -n GatewaySubnet --vnet-name $hub1_vnet_nam
 # # hub1 vm route table
 echo -e "\e[1;36mCreating $hub1_vnet_name-vm route table....\e[0m"
 az network route-table create -g $rg -n $hub1_vnet_name-vm -l $location1 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_wan_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_lan_private_ip -o none
 az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --route-table $hub1_vnet_name-vm -o none
 
 # spoke1 route table
 echo -e "\e[1;36mCreating $spoke1_vnet_name route table....\e[0m"
 az network route-table create -g $rg -n $spoke1_vnet_name -l $location1 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type virtualappliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type virtualappliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type virtualappliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_lan_private_ip -o none
 az network vnet subnet update -g $rg -n $spoke1_vm_subnet_name --vnet-name $spoke1_vnet_name --route-table $spoke1_vnet_name -o none
 
 # spoke2 route table
 echo -e "\e[1;36mCreating $spoke2_vnet_name route table....\e[0m"
 az network route-table create -n $spoke2_vnet_name -g $rg -l $location2 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type virtualappliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type virtualappliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type virtualappliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_lan_private_ip -o none
 az network vnet subnet update -g $rg -n $spoke2_vm_subnet_name --vnet-name $spoke2_vnet_name --route-table $spoke2_vnet_name -o none
 
 
