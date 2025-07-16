@@ -45,8 +45,7 @@ onprem2_gw_asn=65522
 onprem2_gw_vti0=172.22.0.250
 onprem2_gw_vti1=172.22.0.251
 
-default0=0.0.0.0/1
-default1=128.0.0.0/1
+default=0.0.0.0/0
 psk='secret12345'
 admin_username=$(whoami)
 admin_password='Test#123#123'
@@ -145,7 +144,7 @@ az network vnet subnet create -g $rg -n $hub1_fw_subnet_name --address-prefixes 
 # hub1 vm nsg
 echo -e "\e[1;36mCreating $hub1_vnet_name-vm NSG...\e[0m"
 az network nsg create -g $rg -n $hub1_vnet_name-vm -l $location1 -o none
-az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-vm --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes $myip --source-port-ranges '*' -o none
+az network nsg rule create -g $rg -n AllowSSH --nsg-name $hub1_vnet_name-vm --priority 1000 --access Allow --description AllowSSH --protocol Tcp --direction Inbound --destination-address-prefixes '*' --destination-port-ranges 22 --source-address-prefixes '*' --source-port-ranges '*' -o none
 az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --nsg $hub1_vnet_name-vm -o none
 
 # hub1 fw nsg
@@ -165,11 +164,13 @@ az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --publ
 # hub1 fw opnsense vm
 echo -e "\e[1;36mCreating $hub1_vnet_name-fw VM...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-fw" -l $location1 --allocation-method Static --sku Basic -o none
+az network nic create -g $rg -n "$hub1_vnet_name-fw-lan" --subnet $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.1.250 -o none
 az network nic create -g $rg -n "$hub1_vnet_name-fw-wan" --subnet $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.2.250 --public-ip-address "$hub1_vnet_name-fw" -o none
-az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2als_v2 --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" "$hub1_vnet_name-fw-lan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2als_v2 --admin-username $admin_username --generate-ssh-keys --no-wait
 # hub1 fw opnsense vm details:
 hub1_fw_public_ip=$(az network public-ip show -g $rg -n "$hub1_vnet_name-fw" --query 'ipAddress' -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw public ip: $hub1_fw_public_ip
-hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $onprem1_vnet_name-gw wan private IP: $hub1_fw_wan_private_ip
+hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw wan private IP: $hub1_fw_wan_private_ip
+hub1_fw_lan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-lan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw lan private IP: $hub1_fw_lan_private_ip
 
 # onprem1
 echo -e "\e[1;36mCreating $onprem1_vnet_name VNet...\e[0m"
@@ -297,7 +298,7 @@ onprem2_vm_ip=$(az network nic show -g $rg -n $onprem2_vnet_name --query ipConfi
 
 # onprem1 route table
 echo -e "\e[1;36mCreating $onprem1_vnet_name route table...\e[0m"
-az network route-table create -g $rg -n $onprem1_vnet_name -l $location1 -o none
+az network route-table create -g $rg -n $onprem1_vnet_name --disable-bgp-route-propagation true -l $location1 -o none
 az network route-table route create -g $rg -n to-$hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $onprem1_vnet_name --next-hop-ip-address $onprem1_gw_private_ip -o none
@@ -306,7 +307,7 @@ az network vnet subnet update -g $rg --vnet-name $onprem1_vnet_name -n $onprem1_
 
 # onprem2 route table
 echo -e "\e[1;36mCreating $onprem2_vnet_name route table...\e[0m"
-az network route-table create -g $rg -n $onprem2_vnet_name -l $location2 -o none
+az network route-table create -g $rg -n $onprem2_vnet_name --disable-bgp-route-propagation true -l $location2 -o none
 az network route-table route create -g $rg -n to-$hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $onprem2_vnet_name --next-hop-ip-address $onprem2_gw_private_ip -o none
@@ -320,7 +321,7 @@ az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
 # configuring opnsense
 echo -e "\e[1;36mConfiguring $hub1_vnet_name-fw...\e[0m"
 config_file=~/config.xml
-curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/config.xml
+curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/new-config.xml
 echo -e "\e[1;36mCopying configuration files to $hub1_vnet_name-fw and installing opnsense firewall...\e[0m"
 scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
 ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
@@ -755,6 +756,8 @@ az network nic show-effective-route-table -g $rg -n $spoke2_vnet_name -o table
 echo -e "\e[1;36mCreating $hub1_vnet_name-gw route table....\e[0m"
 az network route-table create -g $rg -n $hub1_vnet_name-gw -l $location1 --disable-bgp-route-propagation false -o none
 az network route-table route create -g $rg -n $hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n $onprem1_vnet_name --address-prefix $onprem1_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n $onprem2_vnet_name --address-prefix $onprem2_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
 az network route-table route create -g $rg -n $spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
 az network route-table route create -g $rg -n $spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_wan_private_ip -o none
 az network vnet subnet update -g $rg -n GatewaySubnet --vnet-name $hub1_vnet_name --route-table $hub1_vnet_name-gw -o none
@@ -762,22 +765,19 @@ az network vnet subnet update -g $rg -n GatewaySubnet --vnet-name $hub1_vnet_nam
 # # hub1 vm route table
 echo -e "\e[1;36mCreating $hub1_vnet_name-vm route table....\e[0m"
 az network route-table create -g $rg -n $hub1_vnet_name-vm -l $location1 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_wan_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type virtualappliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_lan_private_ip -o none
 az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --route-table $hub1_vnet_name-vm -o none
 
 # spoke1 route table
 echo -e "\e[1;36mCreating $spoke1_vnet_name route table....\e[0m"
 az network route-table create -g $rg -n $spoke1_vnet_name -l $location1 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type virtualappliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type virtualappliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type virtualappliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_lan_private_ip -o none
 az network vnet subnet update -g $rg -n $spoke1_vm_subnet_name --vnet-name $spoke1_vnet_name --route-table $spoke1_vnet_name -o none
 
 # spoke2 route table
 echo -e "\e[1;36mCreating $spoke2_vnet_name route table....\e[0m"
 az network route-table create -n $spoke2_vnet_name -g $rg -l $location2 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type virtualappliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type virtualappliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_wan_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type virtualappliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_lan_private_ip -o none
 az network vnet subnet update -g $rg -n $spoke2_vm_subnet_name --vnet-name $spoke2_vnet_name --route-table $spoke2_vnet_name -o none
 
 
@@ -796,17 +796,35 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $spoke2_vm_ip"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $onprem1_vm_ip"
 
+echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name VM to the rest of network topology...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $hub1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $spoke1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $spoke2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $onprem2_vm_ip'"
+
+echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name VM to the rest of network topology...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $hub1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $spoke1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $spoke2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $onprem1_vm_ip'"
+
 echo -e "\e[1;36mChecking connectivity from $hub1_vnet_name VM to the rest of network topology...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $onprem1_vm_ip'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $onprem2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $spoke1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $spoke2_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $spoke1_vnet_name VM to the rest of network topology...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $onprem1_vm_ip'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $onprem2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $hub1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $spoke2_vm_ip'"
 
-echo -e "\e[1;36mChecking connectivity from $spoke1_vnet_name VM to the rest of network topology...\e[0m"
+echo -e "\e[1;36mChecking connectivity from $spoke2_vnet_name VM to the rest of network topology...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $onprem1_vm_ip'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $onprem2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $hub1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $spoke1_vm_ip'"
 
 echo -e "\e[1;35m$hub1_vnet_name-fw VM is now up. You can access it by going to https://$hub1_fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
 echo -e "\e[1;35mYou can also ssh root@$hub1_fw_public_ip\nPassword: opnsense\e[0m"
