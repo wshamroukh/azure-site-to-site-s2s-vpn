@@ -161,7 +161,7 @@ echo -e "\e[1;36mCopying config file to $hub1_vnet_name-fw...\e[0m"
 config_file=~/config.xml
 curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/new-config.xml
 scp -o StrictHostKeyChecking=no $config_file root@$hub1_fw_public_ip:/root/
-ssh -o StrictHostKeyChecking=no root@$hub1_fw_public_ip "cp /root/config.xml /config/config.xml && reboot"
+ssh -o StrictHostKeyChecking=no root@$hub1_fw_public_ip "cp /root/config.xml /conf/config.xml && reboot"
 rm $config_file
 
 # onprem1
