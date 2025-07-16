@@ -796,11 +796,13 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o
 echo -e "\e[1;36mChecking connectivity from $spoke1_vm VM to the rest of network topology...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $onprem1_vm_ip'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $onprem2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $hub1_vm_ip'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $spoke2_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $spoke2_vm VM to the rest of network topology...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $onprem1_vm_ip'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $onprem2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $hub1_vm_ip'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $spoke1_vm_ip'"
 
 echo -e "\e[1;35m$hub1_vnet_name-fw VM is now up. You can access it by going to https://$hub1_fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
