@@ -68,9 +68,9 @@ mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
 sed 's/set -e/#set -e/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
 mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
 sudo chmod +x opnsense-bootstrap.sh.in
-sudo sh ~/opnsense-bootstrap.sh.in -y -r 25.1
+sudo sh ~/opnsense-bootstrap.sh.in -y -r 25.7
 sudo cp ~/config.xml /usr/local/etc/config.xml
-sudo pkg upgrade
+sudo pkg upgrade -y
 sudo pkg install -y bash git py311-setuptools-63.1.0_3
 sudo ln -s /usr/local/bin/python3.11 /usr/local/bin/python
 git -c http.sslVerify=false clone https://github.com/Azure/WALinuxAgent.git
@@ -205,6 +205,8 @@ az vm create -g $rg -n $onprem2_vnet_name-gw -l $location2 --image Ubuntu2404 --
 onprem2_gw_pubip=$(az network public-ip show -g $rg -n $onprem2_vnet_name-gw --query ipAddress -o tsv | tr -d '\r') && echo $onprem2_vnet_name-gw public ip: $onprem2_gw_pubip
 onprem2_gw_private_ip=$(az network nic show -g $rg -n $onprem2_vnet_name-gw --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $onprem2_vnet_name-gw private ip: $onprem2_gw_private_ip
 onprem2_default_gw=$(first_ip $onprem2_gw_subnet_address) && echo $onprem2_vnet_name-gw external NIC default gateway IP: $onprem2_default_gw
+# delete cloud init file
+rm $onprem_gw_cloudinit_file
 
 # onprem2 local network gateway
 echo -e "\e[1;36mCreating $onprem2_vnet_name-gw local network gateway...\e[0m"
@@ -785,46 +787,25 @@ az network vnet subnet update -g $rg -n $spoke2_vm_subnet_name --vnet-name $spok
 # Diagnosis after directing the traffic to opnsense Firewall #
 ##############################################################
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw gateway VM to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $spoke1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $spoke2_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $onprem2_vm_ip"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem2_vm_ip"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw gateway VM to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $spoke1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $spoke2_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $onprem1_vm_ip"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip"
 
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name VM to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $hub1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $spoke1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $spoke2_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $onprem2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem2_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name VM to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $hub1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $spoke1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $spoke2_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $onprem1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $hub1_vnet_name VM to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $onprem1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $onprem2_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $spoke1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $spoke2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $spoke1_vnet_name VM to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $onprem1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $onprem2_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $hub1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $spoke2_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip && ping -c 3 $hub1_vm_ip && ping -c 3 $spoke2_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $spoke2_vnet_name VM to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $onprem1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $onprem2_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $hub1_vm_ip'"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $spoke1_vm_ip'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip && ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip'"
 
 echo -e "\e[1;35m$hub1_vnet_name-fw VM is now up. You can access it by going to https://$hub1_fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
 echo -e "\e[1;35mYou can also ssh root@$hub1_fw_public_ip\nPassword: opnsense\e[0m"
