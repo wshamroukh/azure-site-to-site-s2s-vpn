@@ -40,8 +40,7 @@ onprem2_gw_vti1=172.22.0.251
 onprem2_vm_subnet_name=vm
 onprem2_vm_subnet_address=172.22.1.0/24
 
-default0=0.0.0.0/1
-default1=128.0.0.0/1
+default=0.0.0.0/0
 admin_username=$(whoami)
 myip=$(curl -s4 https://ifconfig.co/)
 psk=secret12345
@@ -727,7 +726,7 @@ az network nic show-effective-route-table -g $rg -n $spoke2_vnet_name -o table
 # hub1 GatewaySubnet route table
 echo -e "\e[1;36mDeploying $hub1_vnet_name-gw GatewaySubnet route table and attaching it to GatewaySubnet subnet...\e[0m"
 az network route-table create -g $rg -n $hub1_vnet_name-gw -l $location1 --disable-bgp-route-propagation false -o none
-az network route-table route create -g $rg -n to-$hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-$hub1_vnet_name-$hub1_vm_subnet_name --address-prefix $hub1_vm_subnet_address --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_private_ip -o none
 az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-gw --next-hop-ip-address $hub1_fw_private_ip -o none
 az network vnet subnet update -g $rg -n GatewaySubnet --vnet-name $hub1_vnet_name --route-table $hub1_vnet_name-gw -o none
@@ -735,22 +734,23 @@ az network vnet subnet update -g $rg -n GatewaySubnet --vnet-name $hub1_vnet_nam
 # hub1 vm route table
 echo -e "\e[1;36mDeploying $hub1_vnet_name-vm route table and attaching it to vm subnet...\e[0m"
 az network route-table create -g $rg -n $hub1_vnet_name-vm -l $location1 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-$spoke1_vnet_name --address-prefix $spoke1_vnet_address --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-$spoke2_vnet_name --address-prefix $spoke2_vnet_address --next-hop-type VirtualAppliance --route-table-name $hub1_vnet_name-vm --next-hop-ip-address $hub1_fw_private_ip -o none
 az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --route-table $hub1_vnet_name-vm -o none
 
 # spoke1 route table
 echo -e "\e[1;36mDeploying $spoke1_vnet_name route table and attaching it to $spoke1_vm_subnet_name subnet...\e[0m"
 az network route-table create -g $rg -n $spoke1_vnet_name -l $location1 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type VirtualAppliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type VirtualAppliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type VirtualAppliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-$hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type VirtualAppliance --route-table-name $spoke1_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
 az network vnet subnet update -g $rg -n $spoke1_vm_subnet_name --vnet-name $spoke1_vnet_name --route-table $spoke1_vnet_name -o none
 
 # spoke2 route table
 echo -e "\e[1;36mDeploying $spoke2_vnet_name route table and attaching it to $spoke2_vm_subnet_name subnet...\e[0m"
 az network route-table create -g $rg -n $spoke2_vnet_name -l $location2 --disable-bgp-route-propagation true -o none
-az network route-table route create -g $rg -n to-default0 --address-prefix $default0 --next-hop-type VirtualAppliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
-az network route-table route create -g $rg -n to-default1 --address-prefix $default1 --next-hop-type VirtualAppliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-default --address-prefix $default --next-hop-type VirtualAppliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
+az network route-table route create -g $rg -n to-$hub1_vnet_name --address-prefix $hub1_vnet_address --next-hop-type VirtualAppliance --route-table-name $spoke2_vnet_name --next-hop-ip-address $hub1_fw_private_ip -o none
 az network vnet subnet update -g $rg -n $spoke2_vm_subnet_name --vnet-name $spoke2_vnet_name --route-table $spoke2_vnet_name -o none
 
 ########################################################
@@ -758,11 +758,24 @@ az network vnet subnet update -g $rg -n $spoke2_vm_subnet_name --vnet-name $spok
 ########################################################
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw gateway vm to the rest of network topology after routing through firewall...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem2_vm_ip"
+
+echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem2_vm_ip'"
 
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw gateway vm to the rest of network topology after routing through firewall...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip"
+
+echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip'"
+
+echo -e "\e[1;36mChecking connectivity from $hub1_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip'"
+
+echo -e "\e[1;36mChecking connectivity from $spoke1_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip'"
+
+echo -e "\e[1;36mChecking connectivity from $spoke2_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke2_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip'"
 
 #cleanup
 # az group delete -g $rg -y --no-wait

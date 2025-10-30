@@ -634,9 +634,6 @@ echo -e "\e[1;36mChecking advertised routes from $onprem1_vnet_name-gw to $hub1_
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip0 advertised-routes'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 advertised-routes'"
 echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw gateway vm to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $spoke1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $onprem2_vm_ip"
 
 echo -e "\e[1;36mChecking BGP routing on $onprem2_vnet_name-gw gateway vm...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec statusall"
@@ -648,9 +645,6 @@ echo -e "\e[1;36mChecking advertised routes from $onprem2_vnet_name-gw to $hub1_
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip0 advertised-routes'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 advertised-routes'"
 echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw gateway vm to the rest of network topology...\e[0m"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $spoke1_vm_ip"
-ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $onprem1_vm_ip"
 
 echo -e "\e[1;36mLearned routes on $hub1_vnet_name-gw VNet gateway...\e[0m"
 az network vnet-gateway list-learned-routes -g $rg -n $hub1_vnet_name-gw -o table
@@ -663,6 +657,24 @@ echo -e "\e[1;36mEffective route table on $hub1_vnet_name VM...\e[0m"
 az network nic show-effective-route-table -g $rg -n $hub1_vnet_name -o table
 echo -e "\e[1;36mEffective route table on $spoke1_vnet_name VM...\e[0m"
 az network nic show-effective-route-table -g $rg -n $spoke1_vnet_name -o table
+
+echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name-gw gateway vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $onprem2_vm_ip"
+
+echo -e "\e[1;36mChecking connectivity from $onprem1_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $onprem2_vm_ip'"
+
+echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name-gw gateway vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $spoke2_vm_ip && ping -c 3 $onprem1_vm_ip"
+
+echo -e "\e[1;36mChecking connectivity from $onprem2_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $spoke1_vm_ip && ping -c 3 $onprem1_vm_ip'"
+
+echo -e "\e[1;36mChecking connectivity from $hub1_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_vm_ip 'ping -c 3 $spoke1_vm_ip && ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip'"
+
+echo -e "\e[1;36mChecking connectivity from $spoke1_vnet_name vm to the rest of network topology after routing through firewall...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $spoke1_vm_ip 'ping -c 3 $hub1_vm_ip && ping -c 3 $onprem1_vm_ip && ping -c 3 $onprem2_vm_ip'"
 
 #cleanup
 # az group delete -g $rg -y --no-wait
