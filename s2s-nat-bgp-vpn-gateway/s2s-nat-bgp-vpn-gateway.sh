@@ -140,7 +140,7 @@ az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_v
 echo -e "\e[1;36mDeploying $hub1_vnet_name-gw VPN Gateway...\e[0m"
 az network public-ip create -g $rg -n $hub1_vnet_name-gw0 -l $location1 --allocation-method Static -o none
 az network public-ip create -g $rg -n $hub1_vnet_name-gw1 -l $location1 --allocation-method Static -o none
-az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw --public-ip-addresses $hub1_vnet_name-gw0 $hub1_vnet_name-gw1 --vnet $hub1_vnet_name --sku VpnGw2 --vpn-gateway-generation Generation2 --vpn-gateway-generation Generation22 --gateway-type Vpn --vpn-type RouteBased --asn $hub1_gw_asn --no-wait
+az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw --public-ip-addresses $hub1_vnet_name-gw0 $hub1_vnet_name-gw1 --vnet $hub1_vnet_name --sku VpnGw2 --vpn-gateway-generation Generation2 --vpn-gateway-generation Generation2 --gateway-type Vpn --vpn-type RouteBased --asn $hub1_gw_asn --no-wait
 
 # spoke1 vnet
 echo -e "\e[1;36mCreating $spoke1_vnet_name VNet...\e[0m"
@@ -475,7 +475,7 @@ sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 # frr.conf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 8.2.2
+frr version 10.5.0
 frr defaults traditional
 hostname $onprem1_vnet_name-gw
 log syslog informational
@@ -648,7 +648,7 @@ sed -i "/\$hub1_vnet_name-gw1/ s//$hub1_vnet_name-gw1/" $ipsec_vti_file
 # frr.conf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 8.2.2
+frr version 10.5.0
 frr defaults traditional
 hostname $onprem2_vnet_name-gw
 log syslog informational
