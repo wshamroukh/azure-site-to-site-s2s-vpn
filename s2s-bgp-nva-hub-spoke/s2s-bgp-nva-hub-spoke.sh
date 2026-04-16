@@ -12,7 +12,7 @@ hub1_vm_subnet_address='10.1.1.0/24'
 
 hub1_fw_subnet_name='fw'
 hub1_fw_subnet_address='10.1.2.0/24'
-hub1_fw_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --sku 14_2-release-zfs --all --query "[?offer=='freebsd-14_2'].urn" -o tsv | tr -d '\r') && echo $hub1_fw_vm_image
+hub1_fw_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --sku 14_3-release-zfs --all --query "[?offer=='freebsd-14_3'].urn" -o tsv | tr -d '\r') && echo $hub1_fw_vm_image
 az vm image terms accept --urn $hub1_fw_vm_image -o none
 
 spoke1_vnet_name='spoke1'
@@ -56,7 +56,7 @@ vm_size=Standard_B2ats_v2
 opnsense_init_file=opnsense_init.sh
 cat <<EOF > $opnsense_init_file
 #!/usr/local/bin/bash
-sudo pkg update
+echo $admin_password | sudo -S pkg update
 sudo pkg upgrade -y
 sed 's/#PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config > /tmp/sshd_config
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config_tmp
@@ -68,15 +68,19 @@ mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
 sed 's/set -e/#set -e/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
 mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
 sudo chmod +x opnsense-bootstrap.sh.in
-sudo sh ~/opnsense-bootstrap.sh.in -y -r 25.7
+sudo sh ~/opnsense-bootstrap.sh.in -y -r 26.1
 sudo cp ~/config.xml /usr/local/etc/config.xml
+sudo pkg update 
 sudo pkg upgrade -y
-sudo pkg install -y bash git py311-setuptools-63.1.0_3
-sudo ln -s /usr/local/bin/python3.11 /usr/local/bin/python
+sudo pkg install -y bash git py313-setuptools-63.1.0_3 
+sudo ln -s /usr/local/bin/python3.13 /usr/local/bin/python
 git -c http.sslVerify=false clone https://github.com/Azure/WALinuxAgent.git
 cd ~/WALinuxAgent/
-git checkout v2.13.1.1
+git checkout v2.15.0.1
 sudo python setup.py install --register-service --force
+sudo ln -s /etc/waagent.conf /usr/local/etc/waagent.conf
+waagent -register-service
+waagent start
 sudo reboot
 EOF
 
@@ -166,7 +170,7 @@ echo -e "\e[1;36mCreating $hub1_vnet_name-fw VM...\e[0m"
 az network public-ip create -g $rg -n "$hub1_vnet_name-fw" -l $location1 --allocation-method Static --sku Basic -o none
 az network nic create -g $rg -n "$hub1_vnet_name-fw-lan" --subnet $hub1_vm_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.1.250 -o none
 az network nic create -g $rg -n "$hub1_vnet_name-fw-wan" --subnet $hub1_fw_subnet_name --vnet-name $hub1_vnet_name --ip-forwarding true --private-ip-address 10.1.2.250 --public-ip-address "$hub1_vnet_name-fw" -o none
-az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" "$hub1_vnet_name-fw-lan" --os-disk-name $hub1_vnet_name-fw --size Standard_B2als_v2 --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -g $rg -n $hub1_vnet_name-fw --image $hub1_fw_vm_image --nics "$hub1_vnet_name-fw-wan" "$hub1_vnet_name-fw-lan" --os-disk-name $hub1_vnet_name-fw --size Standard_B4als_v2 --admin-username $admin_username --generate-ssh-keys --no-wait
 # hub1 fw opnsense vm details:
 hub1_fw_public_ip=$(az network public-ip show -g $rg -n "$hub1_vnet_name-fw" --query 'ipAddress' -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw public ip: $hub1_fw_public_ip
 hub1_fw_wan_private_ip=$(az network nic show -g $rg -n $hub1_vnet_name-fw-wan --query ipConfigurations[].privateIPAddress -o tsv | tr -d '\r') && echo $hub1_vnet_name-fw wan private IP: $hub1_fw_wan_private_ip
