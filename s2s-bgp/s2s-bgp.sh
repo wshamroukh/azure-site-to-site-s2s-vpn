@@ -110,9 +110,9 @@ az network vnet subnet update -g $rg -n $hub1_vm_subnet_name --vnet-name $hub1_v
 
 # hub1 VPN GW
 echo -e "\e[1;36mDeploying $hub1_vnet_name-gw VPN Gateway...\e[0m"
-az network public-ip create -g $rg -n $hub1_vnet_name-gw0 -l $location1 --allocation-method Static -o none
-az network public-ip create -g $rg -n $hub1_vnet_name-gw1 -l $location1 --allocation-method Static -o none
-az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --public-ip-addresses $hub1_vnet_name-gw0 $hub1_vnet_name-gw1 --vnet $hub1_vnet_name --sku VpnGw2 --vpn-gateway-generation Generation2 --vpn-gateway-generation Generation2 --gateway-type Vpn --vpn-type RouteBased --asn $hub1_gw_asn --no-wait
+az network public-ip create -g $rg -n $hub1_vnet_name-gw0 -l $location1 --allocation-method Static --sku Standard --tier Regional --zone 1 2 3 -o none
+az network public-ip create -g $rg -n $hub1_vnet_name-gw1 -l $location1 --allocation-method Static --sku Standard --tier Regional --zone 1 2 3 -o none
+az network vnet-gateway create -g $rg -n $hub1_vnet_name-gw -l $location1 --public-ip-addresses $hub1_vnet_name-gw0 $hub1_vnet_name-gw1 --vnet $hub1_vnet_name --sku VpnGw2AZ --vpn-gateway-generation Generation2 --vpn-gateway-generation Generation2 --gateway-type Vpn --vpn-type RouteBased --asn $hub1_gw_asn --no-wait
 
 # spoke1 vnet
 echo -e "\e[1;36mCreating $spoke1_vnet_name VNet...\e[0m"
