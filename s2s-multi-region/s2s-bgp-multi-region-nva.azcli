@@ -2,9 +2,9 @@ rg=s2s-bgp-multi-region-nva
 location1=centralindia
 location2=eastus2
 
-hub1_nva_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --sku 14_3-release-zfs --all --query "[?offer=='freebsd-14_3'].urn" -o tsv | tr -d '\r') && echo $hub1_nva_vm_image
+hub1_nva_vm_image=$(az vm image list -l $location1 -p freebsd --sku 15_1-release-zfs --all --query "[?offer=='freebsd-15_1'].urn" -o tsv | tr -d '\r') && echo $hub1_nva_vm_image
 az vm image terms accept --urn $hub1_nva_vm_image -o none
-hub2_nva_vm_image=$(az vm image list -l $location2 -p thefreebsdfoundation --sku 14_3-release-zfs --all --query "[?offer=='freebsd-14_3'].urn" -o tsv | tr -d '\r') && echo $hub2_nva_vm_image
+hub2_nva_vm_image=$(az vm image list -l $location2 -p freebsd --sku 15_1-release-zfs --all --query "[?offer=='freebsd-15_1'].urn" -o tsv | tr -d '\r') && echo $hub2_nva_vm_image
 az vm image terms accept --urn $hub2_nva_vm_image -o none
 
 hub1_vnet_name=hub1
@@ -73,29 +73,18 @@ EOF
 opnsense_init_file=opnsense_init.sh
 cat <<EOF > $opnsense_init_file
 #!/usr/local/bin/bash
-echo $admin_password | sudo -S pkg update
-sudo pkg upgrade -y
-sed 's/#PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config > /tmp/sshd_config
-sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config_tmp
-sudo mv /tmp/sshd_config /etc/ssh/sshd_config
-sudo /etc/rc.d/sshd restart
 fetch https://raw.githubusercontent.com/opnsense/update/master/src/bootstrap/opnsense-bootstrap.sh.in
-sed 's/reboot/#reboot/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
-mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
-sed 's/set -e/#set -e/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
-mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
+sed -i.bak 's/reboot/#reboot/' opnsense-bootstrap.sh.in
+sed -i.bak "s#pkg delete -fa#pkg query -e '%R != \"FreeBSD-base\"' '%n' | xargs -r pkg delete -fy#" opnsense-bootstrap.sh.in
 sudo chmod +x opnsense-bootstrap.sh.in
-sudo sh ~/opnsense-bootstrap.sh.in -y -r 26.1
+sudo sh ~/opnsense-bootstrap.sh.in -y -r 26.7
+fetch https://raw.githubusercontent.com/wshamroukh/opnsense-azure-vm/refs/heads/main/config.xml
 sudo cp ~/config.xml /usr/local/etc/config.xml
-sudo pkg update 
-sudo pkg upgrade -y
-sudo pkg install -y bash git py313-setuptools-63.1.0_3 
-sudo ln -s /usr/local/bin/python3.13 /usr/local/bin/python
+sudo pkg install -y bash git py313-setuptools-63.1.0_3
 git -c http.sslVerify=false clone https://github.com/Azure/WALinuxAgent.git
 cd ~/WALinuxAgent/
 git checkout v2.15.0.1
 sudo python setup.py install --register-service --force
-sudo ln -s /etc/waagent.conf /usr/local/etc/waagent.conf
 waagent -register-service
 waagent start
 sudo reboot
@@ -257,16 +246,14 @@ hub2_fw_id=$(az vm show -g $rg -n $hub2_vnet_name-fw --query id -o tsv | tr -d '
 wait_until_finished $hub2_fw_id
 
 # Build opnsesne on hub1 fw
-config_file=~/config.xml
-curl -o $config_file https://raw.githubusercontent.com/wshamroukh/opnsense-azure-vm/refs/heads/main/config.xml
 echo -e "\e[1;36mCopying configuration files to $hub1_vnet_name-fw and installing opnsense firewall...\e[0m"
-scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1fw_public_ip:/home/$admin_username
+scp -o StrictHostKeyChecking=no $opnsense_init_file $admin_username@$hub1fw_public_ip:/home/$admin_username
 ssh -o StrictHostKeyChecking=no $admin_username@$hub1fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
 echo -e "\e[1;31mVM is now rebooting. You can access it by going to https://$hub1fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
 
 # Build opnsense on hub2 fw
 echo -e "\e[1;36mCopying configuration files to $hub2_vnet_name-fw and installing opnsense firewall...\e[0m"
-scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub2fw_public_ip:/home/$admin_username
+scp -o StrictHostKeyChecking=no $opnsense_init_file $admin_username@$hub2fw_public_ip:/home/$admin_username
 ssh -o StrictHostKeyChecking=no $admin_username@$hub2fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
 echo -e "\e[1;31mVM is now rebooting. You can access it by going to https://$hub2fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
 

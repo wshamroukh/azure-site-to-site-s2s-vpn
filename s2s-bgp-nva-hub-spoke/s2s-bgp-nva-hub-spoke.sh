@@ -12,7 +12,7 @@ hub1_vm_subnet_address='10.1.1.0/24'
 
 hub1_fw_subnet_name='fw'
 hub1_fw_subnet_address='10.1.2.0/24'
-hub1_fw_vm_image=$(az vm image list -l $location1 -p thefreebsdfoundation --sku 14_3-release-zfs --all --query "[?offer=='freebsd-14_3'].urn" -o tsv | tr -d '\r') && echo $hub1_fw_vm_image
+hub1_fw_vm_image=$$(az vm image list -l $location1 -p freebsd --sku 15_1-release-zfs --all --query "[?offer=='freebsd-15_1'].urn" -o tsv | tr -d '\r') && echo $hub1_fw_vm_image
 az vm image terms accept --urn $hub1_fw_vm_image -o none
 
 spoke1_vnet_name='spoke1'
@@ -56,29 +56,18 @@ vm_size=Standard_B2ats_v2
 opnsense_init_file=opnsense_init.sh
 cat <<EOF > $opnsense_init_file
 #!/usr/local/bin/bash
-echo $admin_password | sudo -S pkg update
-sudo pkg upgrade -y
-sed 's/#PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config > /tmp/sshd_config
-sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config_tmp
-sudo mv /tmp/sshd_config /etc/ssh/sshd_config
-sudo /etc/rc.d/sshd restart
 fetch https://raw.githubusercontent.com/opnsense/update/master/src/bootstrap/opnsense-bootstrap.sh.in
-sed 's/reboot/#reboot/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
-mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
-sed 's/set -e/#set -e/' opnsense-bootstrap.sh.in >opnsense-bootstrap.sh.in.tmp
-mv opnsense-bootstrap.sh.in.tmp opnsense-bootstrap.sh.in
+sed -i.bak 's/reboot/#reboot/' opnsense-bootstrap.sh.in
+sed -i.bak "s#pkg delete -fa#pkg query -e '%R != \"FreeBSD-base\"' '%n' | xargs -r pkg delete -fy#" opnsense-bootstrap.sh.in
 sudo chmod +x opnsense-bootstrap.sh.in
-sudo sh ~/opnsense-bootstrap.sh.in -y -r 26.1
-sudo cp ~/config.xml /usr/local/etc/config.xml
-sudo pkg update 
-sudo pkg upgrade -y
-sudo pkg install -y bash git py313-setuptools-63.1.0_3 
-sudo ln -s /usr/local/bin/python3.13 /usr/local/bin/python
+sudo sh ~/opnsense-bootstrap.sh.in -y -r 26.7
+fetch https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/new-config.xml
+sudo cp ~/new-config.xml /usr/local/etc/config.xml
+sudo pkg install -y bash git py313-setuptools-63.1.0_3
 git -c http.sslVerify=false clone https://github.com/Azure/WALinuxAgent.git
 cd ~/WALinuxAgent/
 git checkout v2.15.0.1
 sudo python setup.py install --register-service --force
-sudo ln -s /etc/waagent.conf /usr/local/etc/waagent.conf
 waagent -register-service
 waagent start
 sudo reboot
@@ -326,12 +315,10 @@ az vm boot-diagnostics enable -g $rg -n $hub1_vnet_name-fw -o none
 
 # configuring opnsense
 echo -e "\e[1;36mConfiguring $hub1_vnet_name-fw...\e[0m"
-config_file=~/config.xml
-curl -o $config_file  https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/main/s2s-bgp-nva-hub-spoke/new-config.xml
 echo -e "\e[1;36mCopying configuration files to $hub1_vnet_name-fw and installing opnsense firewall...\e[0m"
-scp -o StrictHostKeyChecking=no $opnsense_init_file $config_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
+scp -o StrictHostKeyChecking=no $opnsense_init_file $admin_username@$hub1_fw_public_ip:/home/$admin_username
 ssh -o StrictHostKeyChecking=no $admin_username@$hub1_fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
-rm $opnsense_init_file $config_file
+rm $opnsense_init_file
 
 # waiting on hub1 gw to finish deployment
 hub1_gw_id=$(az network vnet-gateway show -n $hub1_vnet_name-gw -g $rg --query 'id' -o tsv | tr -d '\r')
