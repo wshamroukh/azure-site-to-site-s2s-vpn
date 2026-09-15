@@ -78,8 +78,8 @@ sed -i.bak 's/reboot/#reboot/' opnsense-bootstrap.sh.in
 sed -i.bak "s#pkg delete -fa#pkg query -e '%R != \"FreeBSD-base\"' '%n' | xargs -r pkg delete -fy#" opnsense-bootstrap.sh.in
 sudo chmod +x opnsense-bootstrap.sh.in
 sudo sh ~/opnsense-bootstrap.sh.in -y -r 26.7
-fetch https://raw.githubusercontent.com/wshamroukh/opnsense-azure-vm/refs/heads/main/config.xml
 sudo cp ~/config.xml /usr/local/etc/config.xml
+sudo cp ~/config.xml /conf/config.xml
 sudo pkg install -y bash git py313-setuptools-63.1.0_3 os-frr
 git -c http.sslVerify=false clone https://github.com/Azure/WALinuxAgent.git
 cd ~/WALinuxAgent/
@@ -246,16 +246,24 @@ hub2_fw_id=$(az vm show -g $rg -n $hub2_vnet_name-fw --query id -o tsv | tr -d '
 wait_until_finished $hub2_fw_id
 
 # Build opnsesne on hub1 fw
+fw1_config=~/fw1-vm.xml
+curl -o $fw1_config https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/refs/heads/main/s2s-multi-region/fw1-config.xml
+mv $fw1_config ~/config.xml
 echo -e "\e[1;36mCopying configuration files to $hub1_vnet_name-fw and installing opnsense firewall...\e[0m"
-scp -o StrictHostKeyChecking=no $opnsense_init_file $admin_username@$hub1fw_public_ip:/home/$admin_username
+scp -o StrictHostKeyChecking=no $opnsense_init_file ~/config.xml $admin_username@$hub1fw_public_ip:/home/$admin_username
 ssh -o StrictHostKeyChecking=no $admin_username@$hub1fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
 echo -e "\e[1;31mVM is now rebooting. You can access it by going to https://$hub1fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
+rm ~/config.xml
 
 # Build opnsense on hub2 fw
+fw2_config=~/fw2-vm.xml
+curl -o $fw2_config https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/refs/heads/main/s2s-multi-region/fw2-config.xml
+mv $fw2_config ~/config.xml
 echo -e "\e[1;36mCopying configuration files to $hub2_vnet_name-fw and installing opnsense firewall...\e[0m"
-scp -o StrictHostKeyChecking=no $opnsense_init_file $admin_username@$hub2fw_public_ip:/home/$admin_username
+scp -o StrictHostKeyChecking=no $opnsense_init_file ~/config.xml $admin_username@$hub2fw_public_ip:/home/$admin_username
 ssh -o StrictHostKeyChecking=no $admin_username@$hub2fw_public_ip "chmod +x /home/$admin_username/opnsense_init.sh && sh /home/$admin_username/opnsense_init.sh"
 echo -e "\e[1;31mVM is now rebooting. You can access it by going to https://$hub2fw_public_ip/ \n usename: root \n passwd: opnsense\nIt's highly recommended to change the password\e[0m"
+rm ~/config.xml
 
 # waiting on hub1 vpn gw to finish deployment
 hub1_gw_id=$(az network vnet-gateway show -g $rg -n $hub1_vnet_name-gw --query id -o tsv | tr -d '\r')
@@ -530,27 +538,6 @@ rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
 # clear up the cloudinit file
 rm $cloudinit_file $opnsense_init_file $config_file
 
-# Download config files
-fw1_config=~/fw1-vm.xml
-curl -o $fw1_config https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/refs/heads/main/s2s-multi-region/fw1-config.xml
-# Copying config files to site1 pfsense
-echo -e "\e[1;36mCopying configuration files to $site1_vnet_name-fw and installing opnsense firewall...\e[0m"
-ssh-keygen -f '/home/waddahs/.ssh/known_hosts' -R $hub1fw_public_ip
-scp -o StrictHostKeyChecking=no $fw1_config root@$hub1fw_public_ip:/conf/config.xml
-echo -e "\e[1;36mRebooting $hub1_vnet_name-fw VM after importing the config file...\e[0m"
-ssh -o StrictHostKeyChecking=no root@$hub1fw_public_ip "sudo reboot"
-
-fw2_config=~/fw2-vm.xml
-curl -o $fw2_config https://raw.githubusercontent.com/wshamroukh/azure-site-to-site-s2s-vpn/refs/heads/main/s2s-multi-region/fw2-config.xml
-# Copying config files to site1 pfsense
-echo -e "\e[1;36mCopying configuration files to $site2_vnet_name-fw and installing opnsense firewall...\e[0m"
-ssh-keygen -f '/home/waddahs/.ssh/known_hosts' -R $hub2fw_public_ip
-scp -o StrictHostKeyChecking=no $fw2_config root@$hub2fw_public_ip:/conf/config.xml
-echo -e "\e[1;36mRebooting $hub2_vnet_name-fw VM after importing the config file...\e[0m"
-ssh -o StrictHostKeyChecking=no root@$hub2fw_public_ip "sudo reboot"
-
-# clean up configs
-rm $fw1_config $fw2_config
 
 ################################################################
 # Diagnosis before directing all the traffic to hubs Firewalls #
