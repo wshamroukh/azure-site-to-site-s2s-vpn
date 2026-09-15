@@ -80,7 +80,7 @@ sudo chmod +x opnsense-bootstrap.sh.in
 sudo sh ~/opnsense-bootstrap.sh.in -y -r 26.7
 fetch https://raw.githubusercontent.com/wshamroukh/opnsense-azure-vm/refs/heads/main/config.xml
 sudo cp ~/config.xml /usr/local/etc/config.xml
-sudo pkg install -y bash git py313-setuptools-63.1.0_3
+sudo pkg install -y bash git py313-setuptools-63.1.0_3 os-frr
 git -c http.sslVerify=false clone https://github.com/Azure/WALinuxAgent.git
 cd ~/WALinuxAgent/
 git checkout v2.15.0.1
